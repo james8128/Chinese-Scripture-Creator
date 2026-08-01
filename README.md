@@ -8,14 +8,28 @@
 
 ## What this project is
 
-This is a small personal toolkit for Chinese Buddhist scripture pages:
+This toolkit helps anyone who wants to **typeset and customize their own reading edition** of a Chinese scripture — fonts, colors, margins, and page images — then view them in a simple reader (web or Android WebView).
+
+It is **not** a critical scholarly edition of the canon. There are **minor textual varieties** of 《天地八陽神咒經》 / 《佛說天地八陽神咒經》 in circulation. For the standard text, variants, and full bibliographic detail, please always refer to **CBETA** (see credit below). This project simply makes it easier to produce a personal, well-laid-out copy if you wish.
+
+The pipeline has two main parts:
 
 1. **`create_pages.py`** — lays out the sutra like a traditional book  
-   (vertical columns, right → left, double frame, parchment colors) and writes PNG pages.
+   (vertical columns, right → left, double frame, parchment colors) and writes PNG pages.  
+   Swap in your preferred text, tune the parameters, and regenerate.
 2. **`release/`** — a full-screen page reader with touch-friendly navigation,  
    suitable for a local server or embedding in an Android app.
 
-The main text is **《佛說天地八陽神咒經》** (Taishō-style id **T2897** in the filename), traditionally associated with the Tang translator **義淨**. The repo ships a cleaned working text file and pre-built page images so you can run the reader without regenerating first.
+### Scripture text source (please credit)
+
+The working body text shipped in this repository is based on the CBETA Online edition of the Taishō Tripitaka text **T2897** 《佛說天地八陽神咒經》 (translator traditionally given as Tang **義淨**):
+
+- **CBETA Online:** [https://cbetaonline.dila.edu.tw/zh/T2897](https://cbetaonline.dila.edu.tw/zh/T2897)
+
+**Full credit:** text content derives from the Chinese Buddhist Electronic Text Association (**CBETA**) and the underlying Taishō canon edition as presented on CBETA Online (Dharma Drum Institute of Liberal Arts / related CBETA partners).  
+This project is an independent layout and reader tool; it is **not** affiliated with CBETA. Any formatting, punctuation normalization, or editorial cleanup in `T2897_佛說天地八陽神咒經.txt` is for page generation convenience only — **canonical wording and variant readings should be checked against CBETA T2897**.
+
+If you redistribute pages or a modified text, please retain a clear pointer to CBETA T2897 and respect CBETA’s terms of use for the source text.
 
 ---
 
@@ -135,9 +149,10 @@ Each folder is numbered from `page_001`. Counts are **auto-detected**; you can a
 
 ## Source text notes
 
-- Working file: `T2897_佛說天地八陽神咒經.txt` (UTF-8).
-- Parenthetical notes such as `(捺)` are stripped when generating pages.
-- For a public scholarly edition, prefer a canonical CBETA / Taishō source and keep attribution if you redistribute the text widely.
+- Working file: `T2897_佛說天地八陽神咒經.txt` (UTF-8), based on **[CBETA Online T2897](https://cbetaonline.dila.edu.tw/zh/T2897)**.
+- Parenthetical notes such as `(捺)` may be stripped when generating pages.
+- **Variants:** different printings and traditions of 天地八陽神咒經 can differ slightly (wording, punctuation, chaptering). This repo’s file is one practical working copy only. For authoritative text and notes on variants, consult **CBETA T2897**, not this generator alone.
+- **Customization:** replace or edit the `.txt` file with your preferred wording, then re-run `create_pages.py` to build your own page set — that is the main intent of the project.
 
 ---
 
@@ -166,8 +181,8 @@ Ignored locally (see `.gitignore`): `__pycache__/`, old `pages/` output, experim
 
 ## Credits
 
-- Scripture: 佛說天地八陽神咒經  
-- Layout generator & web reader: this repository  
-- Default typeface: Noto Serif TC  
+- **Scripture text:** 《佛說天地八陽神咒經》 **T2897**, via **[CBETA Online](https://cbetaonline.dila.edu.tw/zh/T2897)** (Chinese Buddhist Electronic Text Association). Please credit CBETA when referring to or redistributing the textual content.
+- **Layout generator & web reader:** this repository (Chinese Scripture Creator)
+- **Default typeface:** Noto Serif TC  
 
 Contributions and feedback are welcome via GitHub issues or pull requests.
