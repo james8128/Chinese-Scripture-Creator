@@ -24,6 +24,9 @@ desktop.ini
 *.zip
 *.apk
 *.aab
+# Keep the published sample APK in the repo
+!apk-sample-output/
+!apk-sample-output/**/*.apk
 
 # Old / alternate generator output (create_pages.py writes to release/main/)
 pages/
