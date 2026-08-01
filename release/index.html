@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Scripture Reader</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            position: relative;
+            user-select: none;
+        }
+
+        /* Top Navigation Bar */
+        .navbar {
+            background-color: rgba(30, 30, 30, 0.95);
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 3px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            width: 100%;
+        }
+
+        .navbar.visible {
+            display: flex;
+        }
+
+        /* Slimmer button sizing for native WebView */
+        .btn {
+            background-color: #333333;
+            color: white;
+            border: none;
+            padding: 5px 6px;
+            border-radius: 5px;
+            font-size: 11.5px;
+            font-weight: bold;
+            cursor: pointer;
+            white-space: nowrap;
+            flex: 0 0 auto;
+        }
+        .btn:active { background-color: #555555; }
+        .btn-home { background-color: #2b5b84; }
+        .btn-end { background-color: #842b2b; }
+        
+        .page-info { 
+            font-size: 12px; 
+            font-weight: bold; 
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+            text-align: center;
+            padding: 0 2px;
+            flex: 0 0 auto;
+        }
+
+        /* Full Screen Image Container */
+        .image-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            touch-action: pan-y;
+        }
+        .image-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        .toast {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: #aaa;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            pointer-events: none;
+            opacity: 0.8;
+            transition: opacity 1s ease;
+            z-index: 50;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Hidden Navigation Menu -->
+    <div class="navbar" id="navbar">
+        <button class="btn" onclick="navbarNext()">Next ◀</button>
+        <button class="btn btn-home" onclick="goHome()">🏠 Home</button>
+        <span class="page-info" id="pageInfo">1 / 30</span>
+        <button class="btn" onclick="jumpPrompt()">🎯 Jump</button>
+        <button class="btn btn-end" onclick="goEnd()">🏁 End</button>
+        <button class="btn" onclick="navbarPrev()">▶ Prev</button>
+    </div>
+
+    <!-- Main Full Screen Viewer -->
+    <div class="image-container" id="touchArea">
+        <img id="viewer" src="" alt="Scripture Page">
+    </div>
+
+    <div class="toast" id="toast">Tap Top-Left for Menu | Gesture / Tap to Navigate</div>
+
+    <script>
+        // Three sections, each folder renumbered from page_001
+        //   front/  — before main (cover + front matter)  → .jpg
+        //   main/   — sutra body (gesture + Jump + Home/End) → .png
+        //   after/  — appendix / closing                 → .jpg
+        const FOLDER_FRONT = "front";
+        const FOLDER_MAIN = "main";
+        const FOLDER_AFTER = "after";
+        const EXT_FRONT = "jpg";
+        const EXT_MAIN = "png";
+        const EXT_AFTER = "jpg";
+
+        let images = [];       // full book: [...front paths, ...main paths, ...after paths]
+        let currentIndex = 0;
+        let frontCount = 0;
+        let mainCount = 0;
+        let afterCount = 0;
+
+        // Global indices of main-content first/last page (set after load)
+        let mainStartIndex = 0;
+        let mainEndIndex = 0;
+
+        function toRoman(num) {
+            const map = { m: 1000, cm: 900, d: 500, cd: 400, c: 100, xc: 90, l: 50, xl: 40, x: 10, ix: 9, v: 5, iv: 4, i: 1 };
+            let str = '';
+            for (let i in map) {
+                while (num >= map[i]) {
+                    str += i;
+                    num -= map[i];
+                }
+            }
+            return str;
+        }
+
+        function pad3(n) {
+            const s = String(n);
+            return s.length >= 3 ? s : ("000" + s).slice(-3);
+        }
+
+        /** True if url is an existing image (HEAD first; Image() fallback for old WebView). */
+        async function checkImageExists(url) {
+            try {
+                if (typeof fetch === "function") {
+                    let res = await fetch(url, { method: "HEAD", cache: "no-store" });
+                    // Some servers/WebViews mishandle HEAD — retry with GET
+                    if (res.status === 405 || res.status === 501) {
+                        res = await fetch(url, { method: "GET", cache: "no-store" });
+                    }
+                    return res.ok;
+                }
+            } catch (e) {
+                /* fall through to Image() */
+            }
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => resolve(true);
+                img.onerror = () => resolve(false);
+                img.src = url + (url.indexOf("?") >= 0 ? "&" : "?") + "t=" + Date.now();
+            });
+        }
+
+        /** Load folder/page_001.{ext}, page_002.{ext}, … until a missing file. */
+        async function loadFolder(folder, ext) {
+            const list = [];
+            for (let i = 1; i <= 200; i++) {
+                const path = folder + "/page_" + pad3(i) + "." + ext;
+                if (await checkImageExists(path)) {
+                    list.push(path);
+                } else {
+                    break;
+                }
+            }
+            return list;
+        }
+
+        async function loadImages() {
+            try {
+                const front = await loadFolder(FOLDER_FRONT, EXT_FRONT);
+                const main = await loadFolder(FOLDER_MAIN, EXT_MAIN);
+                const after = await loadFolder(FOLDER_AFTER, EXT_AFTER);
+
+                frontCount = front.length;
+                mainCount = main.length;
+                afterCount = after.length;
+                images = front.concat(main, after);
+
+                mainStartIndex = frontCount;
+                mainEndIndex = mainCount > 0 ? frontCount + mainCount - 1 : -1;
+
+                if (mainCount > 0) {
+                    showPage(mainStartIndex);
+                } else if (images.length > 0) {
+                    showPage(0);
+                } else {
+                    document.getElementById("pageInfo").innerText = "No pages";
+                    console.error(
+                        "No images found. Expected folders:",
+                        FOLDER_FRONT + "/",
+                        FOLDER_MAIN + "/",
+                        FOLDER_AFTER + "/",
+                        "next to index.html. Check server document root."
+                    );
+                }
+            } catch (err) {
+                console.error("loadImages failed:", err);
+                document.getElementById("pageInfo").innerText = "Load error";
+            }
+        }
+
+        function showPage(index) {
+            if (images.length === 0) return;
+
+            if (index < 0) index = 0;
+            if (index >= images.length) index = images.length - 1;
+
+            currentIndex = index;
+            document.getElementById('viewer').src = images[currentIndex];
+
+            let label = "";
+
+            if (currentIndex === images.length - 1) {
+                // Last image of the whole book
+                label = "完";
+            } else if (currentIndex < mainStartIndex) {
+                // Front matter: Cover + roman numerals for the rest
+                if (currentIndex === 0) {
+                    label = "Cover";
+                } else {
+                    // pages 2..frontCount → i / (frontCount-1) … 
+                    const romanCurrent = toRoman(currentIndex);           // 1→i for page_002
+                    const romanTotal = toRoman(Math.max(1, frontCount - 1));
+                    label = `${romanCurrent} / ${romanTotal}`;
+                }
+            } else if (currentIndex <= mainEndIndex) {
+                // Main sutra: 1 / N … N / N
+                const currentSutraPage = (currentIndex - mainStartIndex) + 1;
+                label = `${currentSutraPage} / ${mainCount}`;
+            } else {
+                // After main: 附 1, 附 2, …
+                const appPage = currentIndex - mainEndIndex;
+                label = `附 ${appPage}`;
+            }
+
+            document.getElementById('pageInfo').innerText = label;
+        }
+
+        function navbarNext() {
+            if (currentIndex < images.length - 1) {
+                showPage(currentIndex + 1);
+            }
+        }
+
+        function navbarPrev() {
+            if (currentIndex > 0) {
+                showPage(currentIndex - 1);
+            }
+        }
+
+        // Gestures stay inside main content only
+        function gestureNext() {
+            if (currentIndex < mainEndIndex) {
+                showPage(currentIndex + 1);
+            }
+        }
+
+        function gesturePrev() {
+            if (currentIndex > mainStartIndex) {
+                showPage(currentIndex - 1);
+            }
+        }
+
+        /** Jump to a 1-based page inside the main/ folder. */
+        function goToMainPage(mainPageNum) {
+            if (mainCount === 0) return;
+            let n = parseInt(mainPageNum, 10);
+            if (isNaN(n)) return;
+            if (n < 1) n = 1;
+            if (n > mainCount) n = mainCount;
+            showPage(mainStartIndex + (n - 1));
+        }
+
+        // Home / End buttons → first / last page of main content
+        function goHome() {
+            goToMainPage(1);
+        }
+
+        function goEnd() {
+            goToMainPage(mainCount);
+        }
+
+        function jumpPrompt() {
+            if (mainCount === 0) return;
+            const currentRelativePage =
+                (currentIndex >= mainStartIndex && currentIndex <= mainEndIndex)
+                    ? (currentIndex - mainStartIndex) + 1
+                    : 1;
+
+            const p = prompt(`Enter page (1 - ${mainCount}):`, currentRelativePage);
+            if (p !== null && p !== "") {
+                goToMainPage(p);
+            }
+        }
+
+        function toggleMenu() {
+            const nav = document.getElementById('navbar');
+            nav.classList.toggle('visible');
+        }
+
+        /* --- Touch & Gesture Event Handlers --- */
+        const touchArea = document.getElementById('touchArea');
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        let touchEndY = 0;
+        const minSwipeDistance = 40;
+
+        touchArea.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+        }, false);
+
+        touchArea.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            touchEndY = e.changedTouches[0].screenY;
+            handleGesture(e);
+        }, false);
+
+        function handleGesture(event) {
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+
+            if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > minSwipeDistance) {
+                if (deltaX < 0) {
+                    gesturePrev();
+                } else {
+                    gestureNext();
+                }
+            } else {
+                handleTapZone(event.changedTouches[0]);
+            }
+        }
+
+        function handleTapZone(touch) {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            const x = touch.clientX;
+            const y = touch.clientY;
+
+            const isLeft = x < width / 2;
+            const isRight = x >= width / 2;
+            const isTop = y < height / 2;
+            const isBottom = y >= height / 2;
+
+            const isCenter = (x > width * 0.35 && x < width * 0.65) && (y > height * 0.35 && y < height * 0.65);
+
+            if (isCenter) {
+                goHome();
+            } else if (isLeft && isTop) {
+                toggleMenu();
+            } else if (isRight && isBottom) {
+                gestureNext();
+            } else if ((isRight && isTop) || (isLeft && isBottom)) {
+                gesturePrev();
+            }
+        }
+
+        setTimeout(() => {
+            const toast = document.getElementById('toast');
+            if (toast) toast.style.opacity = '0';
+        }, 4000);
+
+        loadImages();
+    </script>
+</body>
+</html>
