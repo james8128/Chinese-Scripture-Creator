@@ -124,8 +124,8 @@ The **`release/`** package — **excluding** the PC-only helper files `server.py
 
 | Platform | Status |
 |----------|--------|
-| **Android** (sample APK / WebView) | **Fully functional** — menu, jump, home/end, and touch gestures for reading work as designed. |
-| **PC browser** (`server.py`) | **Work in progress** — useful for preview; navigation polish is still being improved. Prefer the Android build for the intended reading experience. |
+| **Android** (sample APK / WebView) | **Fully functional** — original touch gestures and menu unchanged. |
+| **PC browser** (`server.py`) | **Mouse + keyboard supported** — large side **NEXT / PREV** buttons in the left/right margins, click zones on the page, and keys: `←` `→`, `PageUp`/`PageDown`, `Space`, `Home`/`End`, `M` (menu), `J` (jump). |
 
 ---
 

@@ -103,6 +103,77 @@
             transition: opacity 1s ease;
             z-index: 50;
         }
+
+        /*
+         * Desktop-only side page-turn buttons (left / right margins).
+         * Hidden on phones / coarse pointers so Android WebView layout stays unchanged.
+         */
+        .side-nav {
+            display: none;
+        }
+
+        @media (hover: hover) and (pointer: fine) and (min-width: 700px) {
+            .side-nav {
+                display: flex;
+                position: fixed;
+                top: 50%;
+                transform: translateY(-50%);
+                z-index: 80;
+                width: min(96px, 12vw);
+                height: min(220px, 42vh);
+                align-items: center;
+                justify-content: center;
+                border: none;
+                border-radius: 18px;
+                cursor: pointer;
+                color: #f5e6c8;
+                background: linear-gradient(
+                    160deg,
+                    rgba(122, 92, 62, 0.55) 0%,
+                    rgba(40, 32, 24, 0.72) 100%
+                );
+                box-shadow:
+                    0 8px 28px rgba(0, 0, 0, 0.45),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+                backdrop-filter: blur(4px);
+                transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+                -webkit-tap-highlight-color: transparent;
+            }
+            .side-nav:hover {
+                background: linear-gradient(
+                    160deg,
+                    rgba(140, 112, 83, 0.75) 0%,
+                    rgba(60, 45, 30, 0.85) 100%
+                );
+                box-shadow:
+                    0 10px 32px rgba(0, 0, 0, 0.55),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+            }
+            .side-nav:active {
+                transform: translateY(-50%) scale(0.97);
+            }
+            .side-nav-left {
+                left: max(8px, calc((100vw - min(100vw, 100vh * 0.62)) / 4 - 48px));
+            }
+            .side-nav-right {
+                right: max(8px, calc((100vw - min(100vw, 100vh * 0.62)) / 4 - 48px));
+            }
+            .side-nav .side-nav-icon {
+                font-size: clamp(28px, 4vw, 42px);
+                font-weight: 700;
+                line-height: 1;
+                text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+                pointer-events: none;
+            }
+            .side-nav .side-nav-label {
+                position: absolute;
+                bottom: 14px;
+                font-size: 11px;
+                letter-spacing: 0.12em;
+                opacity: 0.85;
+                pointer-events: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -117,10 +188,20 @@
         <button class="btn" onclick="navbarPrev()">▶ Prev</button>
     </div>
 
-    <!-- Main Full Screen Viewer -->
+    <!-- Main Full Screen Viewer (Android touch target — handlers unchanged below) -->
     <div class="image-container" id="touchArea">
         <img id="viewer" src="" alt="Scripture Page">
     </div>
+
+    <!-- Desktop only: large side buttons in the empty left/right margins -->
+    <button type="button" class="side-nav side-nav-left" id="sideNext" title="Next page (←)" aria-label="Next page">
+        <span class="side-nav-icon">◀</span>
+        <span class="side-nav-label">NEXT</span>
+    </button>
+    <button type="button" class="side-nav side-nav-right" id="sidePrev" title="Previous page (→)" aria-label="Previous page">
+        <span class="side-nav-icon">▶</span>
+        <span class="side-nav-label">PREV</span>
+    </button>
 
     <div class="toast" id="toast">Tap Top-Left for Menu | Gesture / Tap to Navigate</div>
 
@@ -332,7 +413,7 @@
             nav.classList.toggle('visible');
         }
 
-        /* --- Touch & Gesture Event Handlers --- */
+        /* --- Touch & Gesture Event Handlers (Android — do not change) --- */
         const touchArea = document.getElementById('touchArea');
         let touchStartX = 0;
         let touchStartY = 0;
@@ -348,6 +429,8 @@
         touchArea.addEventListener('touchend', e => {
             touchEndX = e.changedTouches[0].screenX;
             touchEndY = e.changedTouches[0].screenY;
+            // Prevent the synthetic mouse "click" that follows a touch on some devices
+            ignoreMouseClickUntil = Date.now() + 700;
             handleGesture(e);
         }, false);
 
@@ -387,6 +470,129 @@
                 gestureNext();
             } else if ((isRight && isTop) || (isLeft && isBottom)) {
                 gesturePrev();
+            }
+        }
+
+        /* ===================================================================
+         * Desktop / PC input (mouse + keyboard + side buttons)
+         * Added on top of touch; Android touch path above stays as-is.
+         * Side buttons are CSS-hidden on coarse/touch-first devices.
+         * =================================================================== */
+        let ignoreMouseClickUntil = 0;
+
+        function isDesktopPointer() {
+            try {
+                return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+            } catch (e) {
+                return true;
+            }
+        }
+
+        /** Mouse click zones on the page (same map as touch taps; whole-book sides via buttons). */
+        function handleMouseClickZone(clientX, clientY) {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            const x = clientX;
+            const y = clientY;
+
+            const isLeft = x < width / 2;
+            const isRight = x >= width / 2;
+            const isTop = y < height / 2;
+            const isBottom = y >= height / 2;
+            const isCenter =
+                (x > width * 0.35 && x < width * 0.65) &&
+                (y > height * 0.35 && y < height * 0.65);
+
+            if (isCenter) {
+                goHome();
+            } else if (isLeft && isTop) {
+                toggleMenu();
+            } else if (isRight && isBottom) {
+                // Desktop: click corners turn the whole book (like side buttons)
+                navbarNext();
+            } else if ((isRight && isTop) || (isLeft && isBottom)) {
+                navbarPrev();
+            } else if (isLeft) {
+                navbarNext();
+            } else if (isRight) {
+                navbarPrev();
+            }
+        }
+
+        touchArea.addEventListener("click", function (e) {
+            // Skip ghost clicks after a real touch gesture
+            if (Date.now() < ignoreMouseClickUntil) return;
+            // Prefer side buttons on wide desktop; still allow click-to-turn
+            handleMouseClickZone(e.clientX, e.clientY);
+        }, false);
+
+        // Large side buttons: Next ◀ (left) / Prev ▶ (right) — matches navbar
+        const sideNext = document.getElementById("sideNext");
+        const sidePrev = document.getElementById("sidePrev");
+        if (sideNext) {
+            sideNext.addEventListener("click", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                navbarNext();
+            });
+        }
+        if (sidePrev) {
+            sidePrev.addEventListener("click", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                navbarPrev();
+            });
+        }
+
+        // Keyboard: ← / PageDown / Space = next; → / PageUp / Backspace = prev
+        document.addEventListener("keydown", function (e) {
+            const tag = (e.target && e.target.tagName) || "";
+            if (tag === "INPUT" || tag === "TEXTAREA") return;
+
+            switch (e.key) {
+                case "ArrowLeft":
+                case "PageDown":
+                case " ":
+                case "Spacebar":
+                    e.preventDefault();
+                    navbarNext();
+                    break;
+                case "ArrowRight":
+                case "PageUp":
+                case "Backspace":
+                    e.preventDefault();
+                    navbarPrev();
+                    break;
+                case "Home":
+                    e.preventDefault();
+                    goHome();
+                    break;
+                case "End":
+                    e.preventDefault();
+                    goEnd();
+                    break;
+                case "m":
+                case "M":
+                    e.preventDefault();
+                    toggleMenu();
+                    break;
+                case "j":
+                case "J":
+                    e.preventDefault();
+                    jumpPrompt();
+                    break;
+                default:
+                    break;
+            }
+        });
+
+        // Desktop toast hint (does not change Android short message timing)
+        if (isDesktopPointer()) {
+            document.body.classList.add("desktop-ui");
+            const toast = document.getElementById("toast");
+            if (toast) {
+                toast.textContent =
+                    "Side buttons or ← → keys to turn pages · M = menu · J = jump · click page zones";
             }
         }
 
