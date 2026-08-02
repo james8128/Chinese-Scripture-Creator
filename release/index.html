@@ -525,12 +525,13 @@
 
     <!-- Desktop: session disc dashboard (left upper, aligned with hints) -->
     <div class="side-dash" id="sideDash" aria-live="polite">
+        <!-- Visual order R→L (Chinese): 完 附 正 前 面 — ids unchanged for logic -->
         <div class="sess-track" title="Book section (5 sessions)">
-            <span class="sess-chip" id="chipFirst">面</span>
-            <span class="sess-chip" id="chipFrontRest">前</span>
-            <span class="sess-chip" id="chipMain">正</span>
-            <span class="sess-chip" id="chipAfterRest">附</span>
             <span class="sess-chip" id="chipLast">完</span>
+            <span class="sess-chip" id="chipAfterRest">附</span>
+            <span class="sess-chip" id="chipMain">正</span>
+            <span class="sess-chip" id="chipFrontRest">前</span>
+            <span class="sess-chip" id="chipFirst">面</span>
         </div>
         <div class="disc-wrap">
             <svg viewBox="0 0 100 100" aria-hidden="true">
@@ -556,11 +557,11 @@
     <!-- Desktop only: bottom reminder (click zones + keys). Hidden on Android. -->
     <div class="desktop-hints" id="desktopHints" aria-hidden="true">
         <span class="hint-title">Session navigation</span>
-        <span class="hint-line">Session jump: ◀◀ / ▶▶ buttons (or [ / ])</span>
-        <span class="hint-line">First of main: Center click / Home key or ↑</span>
-        <span class="hint-line">Previous page: Left-bottom click / ←</span>
-        <span class="hint-line">Next page: Right-bottom click / →</span>
-        <span class="hint-line">Last page: End key or ↓</span>
+        <span class="hint-line">Session jump: ◀◀ / ▶▶</span>
+        <span class="hint-line">First of main: Center click / Home key or ↑ key</span>
+        <span class="hint-line">Previous page: ▶ / Left-bottom click / Right-upper click / ← key</span>
+        <span class="hint-line">Next page: ◀ / Right-bottom click / → key</span>
+        <span class="hint-line">Last page: 🏁 / End key or ↓ key</span>
         <span class="hint-line">Jump to page: J key + page number</span>
         <span class="hint-line">Back / Undo: Top-left click / B key</span>
     </div>
@@ -1117,6 +1118,9 @@
             } else if (isLeft && isTop) {
                 goBackInHistory();
             } else if (isLeft && isBottom) {
+                sessionPrevPage();
+            } else if (isRight && isTop) {
+                // Same as Android: right-upper = previous page
                 sessionPrevPage();
             } else if (isRight && isBottom) {
                 sessionNextPage();
