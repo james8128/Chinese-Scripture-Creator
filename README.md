@@ -125,7 +125,7 @@ The **`release/`** package — **excluding** the PC-only helper files `server.py
 | Platform | Status |
 |----------|--------|
 | **Android** (sample APK / WebView) | **Fully functional** — original touch gestures and menu unchanged. |
-| **PC browser** (`server.py`) | **Mouse + keyboard** — D-pad grid beside the page: top **Home**, center **Prev/Next**, bottom **End**; click left/right half of page; keys `←`/`→` turn, `↑` Home, `↓` End, `J` jump. (Menu is touch/Android only.) |
+| **PC browser** (`server.py`) | **Mouse + keyboard** — D-pad grid beside the page: **Home** / **Prev**·**Next** / **End**, plus **Back** (visit history, undoes accidental jumps); click left/right half of page; keys `←`/`→` turn, `↑` Home, `↓` End, `B` back, `J` jump. (Menu is touch/Android only.) |
 
 ---
 

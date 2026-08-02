@@ -105,10 +105,13 @@
         }
 
         /*
+        /*
          * Desktop-only D-pad grid, snug to the right edge of the page image:
          *        [ HOME ]
          *   [PREV]    [NEXT]
          *        [ END  ]
+         *        (gap)
+         *        [ BACK ]   ← undo accidental jumps (history stack)
          * Hidden on phones so Android WebView is unchanged.
          * Page aspect ~ 550/890 (matches create_pages.py defaults).
          */
@@ -120,13 +123,16 @@
             .side-rail {
                 --page-aspect: 0.618; /* width/height ≈ 550/890 */
                 --btn: min(76px, 9.5vw, 12vh);
+                --gap-back: 14px; /* space between End and Back */
                 display: grid;
                 grid-template-columns: var(--btn) var(--btn);
-                grid-template-rows: var(--btn) var(--btn) var(--btn);
+                grid-template-rows: var(--btn) var(--btn) var(--btn) var(--gap-back) var(--btn);
                 grid-template-areas:
                     "home home"
                     "prev next"
-                    "end  end";
+                    "end  end"
+                    "gap  gap"
+                    "back back";
                 gap: 8px;
                 position: fixed;
                 top: 50%;
@@ -169,13 +175,19 @@
                 box-shadow:
                     0 6px 18px rgba(0, 0, 0, 0.4),
                     inset 0 1px 0 rgba(255, 255, 255, 0.12);
-                transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+                transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease, opacity 0.15s ease;
                 -webkit-tap-highlight-color: transparent;
             }
             .side-rail .side-home { grid-area: home; }
             .side-rail .side-prev { grid-area: prev; }
             .side-rail .side-next { grid-area: next; }
             .side-rail .side-end  { grid-area: end; }
+            .side-rail .side-gap  {
+                grid-area: gap;
+                pointer-events: none;
+                min-height: var(--gap-back);
+            }
+            .side-rail .side-back { grid-area: back; }
             .side-rail .side-nav:hover {
                 background: linear-gradient(
                     160deg,
@@ -188,6 +200,12 @@
             }
             .side-rail .side-nav:active {
                 transform: scale(0.96);
+            }
+            .side-rail .side-nav:disabled {
+                opacity: 0.35;
+                cursor: default;
+                transform: none;
+                box-shadow: none;
             }
             .side-rail .side-nav.side-home {
                 background: linear-gradient(
@@ -215,6 +233,20 @@
                     160deg,
                     rgba(170, 55, 55, 0.85) 0%,
                     rgba(75, 30, 30, 0.92) 100%
+                );
+            }
+            .side-rail .side-nav.side-back {
+                background: linear-gradient(
+                    160deg,
+                    rgba(70, 70, 78, 0.75) 0%,
+                    rgba(32, 32, 38, 0.9) 100%
+                );
+            }
+            .side-rail .side-nav.side-back:hover:not(:disabled) {
+                background: linear-gradient(
+                    160deg,
+                    rgba(95, 95, 105, 0.88) 0%,
+                    rgba(45, 45, 55, 0.95) 100%
                 );
             }
             .side-rail .side-nav-icon {
@@ -251,7 +283,7 @@
         <img id="viewer" src="" alt="Scripture Page">
     </div>
 
-    <!-- Desktop only: D-pad grid beside the page image (not used on Android) -->
+    <!-- Desktop only: D-pad grid + Back history (not used on Android) -->
     <div class="side-rail" id="sideRail" aria-label="Page controls">
         <button type="button" class="side-nav side-home" id="sideHome" title="Main first page (↑ / Home)" aria-label="Home — first main page">
             <span class="side-nav-icon">🏠</span>
@@ -268,6 +300,11 @@
         <button type="button" class="side-nav side-end" id="sideEnd" title="Main last page (↓ / End)" aria-label="End — last main page">
             <span class="side-nav-icon">🏁</span>
             <span class="side-nav-label">END</span>
+        </button>
+        <div class="side-gap" aria-hidden="true"></div>
+        <button type="button" class="side-nav side-back" id="sideBack" title="Back to previous view (B)" aria-label="Back in page history" disabled>
+            <span class="side-nav-icon">↩</span>
+            <span class="side-nav-label">BACK</span>
         </button>
     </div>
 
@@ -294,6 +331,12 @@
         // Global indices of main-content first/last page (set after load)
         let mainStartIndex = 0;
         let mainEndIndex = 0;
+
+        // Page visit history for desktop Back (undo accidental Home/End/Jump/turns)
+        let pageHistory = [];
+        let historyEnabled = false;   // off until first page is shown
+        let historyFromBack = false;  // true while restoring via Back
+        const PAGE_HISTORY_MAX = 80;
 
         function toRoman(num) {
             const map = { m: 1000, cm: 900, d: 500, cd: 400, c: 100, xc: 90, l: 50, xl: 40, x: 10, ix: 9, v: 5, iv: 4, i: 1 };
@@ -376,10 +419,29 @@
                         "next to index.html. Check server document root."
                     );
                 }
+                // Start recording history only after the opening page is shown
+                historyEnabled = true;
+                updateBackButton();
             } catch (err) {
                 console.error("loadImages failed:", err);
                 document.getElementById("pageInfo").innerText = "Load error";
             }
+        }
+
+        function updateBackButton() {
+            const btn = document.getElementById("sideBack");
+            if (!btn) return;
+            btn.disabled = pageHistory.length === 0;
+        }
+
+        /** Go to previous view in history (e.g. after accidental Home/End). */
+        function goBackInHistory() {
+            if (pageHistory.length === 0) return;
+            const prev = pageHistory.pop();
+            historyFromBack = true;
+            showPage(prev);
+            historyFromBack = false;
+            updateBackButton();
         }
 
         function showPage(index) {
@@ -387,6 +449,18 @@
 
             if (index < 0) index = 0;
             if (index >= images.length) index = images.length - 1;
+
+            // Record where we left, unless this navigation is Back or initial load
+            if (
+                historyEnabled &&
+                !historyFromBack &&
+                index !== currentIndex
+            ) {
+                pageHistory.push(currentIndex);
+                if (pageHistory.length > PAGE_HISTORY_MAX) {
+                    pageHistory.shift();
+                }
+            }
 
             currentIndex = index;
             document.getElementById('viewer').src = images[currentIndex];
@@ -417,6 +491,7 @@
             }
 
             document.getElementById('pageInfo').innerText = label;
+            updateBackButton();
         }
 
         function navbarNext() {
@@ -600,12 +675,13 @@
                 fn();
             });
         }
-        bindSideButton("sideHome", goHome);       // first page of main/
-        bindSideButton("sidePrev", navbarPrev);   // previous page
-        bindSideButton("sideNext", navbarNext);   // next page
-        bindSideButton("sideEnd", goEnd);         // last page of main/
+        bindSideButton("sideHome", goHome);           // first page of main/
+        bindSideButton("sidePrev", navbarPrev);       // previous page
+        bindSideButton("sideNext", navbarNext);       // next page
+        bindSideButton("sideEnd", goEnd);             // last page of main/
+        bindSideButton("sideBack", goBackInHistory);  // undo path (history)
 
-        // Keyboard (PC): ← prev · → next · ↑ home · ↓ end  (no M — menu is Android/touch)
+        // Keyboard (PC): ← prev · → next · ↑ home · ↓ end · B back  (no M — Android menu only)
         document.addEventListener("keydown", function (e) {
             const tag = (e.target && e.target.tagName) || "";
             if (tag === "INPUT" || tag === "TEXTAREA") return;
@@ -613,7 +689,6 @@
             switch (e.key) {
                 case "ArrowLeft":
                 case "PageUp":
-                case "Backspace":
                     e.preventDefault();
                     navbarPrev();
                     break;
@@ -634,6 +709,11 @@
                     e.preventDefault();
                     goEnd();
                     break;
+                case "b":
+                case "B":
+                    e.preventDefault();
+                    goBackInHistory();
+                    break;
                 case "j":
                 case "J":
                     e.preventDefault();
@@ -650,7 +730,7 @@
             const toast = document.getElementById("toast");
             if (toast) {
                 toast.textContent =
-                    "Grid: Home / Prev / Next / End  ·  ↑ Home · ↓ End · ← → turn  ·  J jump";
+                    "Grid + Back (history)  ·  ↑↓ Home/End  ·  ←→ turn  ·  B back  ·  J jump";
             }
         }
 
