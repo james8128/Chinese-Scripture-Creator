@@ -105,72 +105,106 @@
         }
 
         /*
-         * Desktop-only side page-turn buttons (left / right margins).
-         * Hidden on phones / coarse pointers so Android WebView layout stays unchanged.
+         * Desktop-only control rail on the RIGHT margin (Home / Prev / Next / End).
+         * Hidden on phones / coarse pointers so Android WebView stays unchanged.
          */
-        .side-nav {
+        .side-rail {
             display: none;
         }
 
         @media (hover: hover) and (pointer: fine) and (min-width: 700px) {
-            .side-nav {
+            .side-rail {
                 display: flex;
+                flex-direction: column;
+                justify-content: center;
+                gap: 12px;
                 position: fixed;
                 top: 50%;
+                right: max(10px, min(28px, 2.5vw));
                 transform: translateY(-50%);
                 z-index: 80;
-                width: min(96px, 12vw);
-                height: min(220px, 42vh);
+                padding: 12px 10px;
+                border-radius: 22px;
+                background: rgba(18, 14, 10, 0.35);
+                box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+                backdrop-filter: blur(6px);
+            }
+            .side-rail .side-nav {
+                display: flex;
+                flex-direction: column;
                 align-items: center;
                 justify-content: center;
+                width: min(88px, 11vw);
+                height: min(88px, 14vh);
+                min-height: 72px;
                 border: none;
-                border-radius: 18px;
+                border-radius: 16px;
                 cursor: pointer;
                 color: #f5e6c8;
                 background: linear-gradient(
                     160deg,
-                    rgba(122, 92, 62, 0.55) 0%,
-                    rgba(40, 32, 24, 0.72) 100%
+                    rgba(122, 92, 62, 0.58) 0%,
+                    rgba(40, 32, 24, 0.78) 100%
                 );
                 box-shadow:
-                    0 8px 28px rgba(0, 0, 0, 0.45),
+                    0 6px 18px rgba(0, 0, 0, 0.4),
                     inset 0 1px 0 rgba(255, 255, 255, 0.12);
-                backdrop-filter: blur(4px);
                 transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
                 -webkit-tap-highlight-color: transparent;
             }
-            .side-nav:hover {
+            .side-rail .side-nav:hover {
                 background: linear-gradient(
                     160deg,
-                    rgba(140, 112, 83, 0.75) 0%,
-                    rgba(60, 45, 30, 0.85) 100%
+                    rgba(140, 112, 83, 0.8) 0%,
+                    rgba(60, 45, 30, 0.9) 100%
                 );
                 box-shadow:
-                    0 10px 32px rgba(0, 0, 0, 0.55),
+                    0 8px 22px rgba(0, 0, 0, 0.5),
                     inset 0 1px 0 rgba(255, 255, 255, 0.18);
             }
-            .side-nav:active {
-                transform: translateY(-50%) scale(0.97);
+            .side-rail .side-nav:active {
+                transform: scale(0.96);
             }
-            .side-nav-left {
-                left: max(8px, calc((100vw - min(100vw, 100vh * 0.62)) / 4 - 48px));
+            .side-rail .side-nav.side-home {
+                background: linear-gradient(
+                    160deg,
+                    rgba(43, 91, 132, 0.7) 0%,
+                    rgba(24, 40, 56, 0.85) 100%
+                );
             }
-            .side-nav-right {
-                right: max(8px, calc((100vw - min(100vw, 100vh * 0.62)) / 4 - 48px));
+            .side-rail .side-nav.side-home:hover {
+                background: linear-gradient(
+                    160deg,
+                    rgba(55, 120, 170, 0.85) 0%,
+                    rgba(30, 55, 75, 0.92) 100%
+                );
             }
-            .side-nav .side-nav-icon {
-                font-size: clamp(28px, 4vw, 42px);
+            .side-rail .side-nav.side-end {
+                background: linear-gradient(
+                    160deg,
+                    rgba(132, 43, 43, 0.7) 0%,
+                    rgba(56, 24, 24, 0.85) 100%
+                );
+            }
+            .side-rail .side-nav.side-end:hover {
+                background: linear-gradient(
+                    160deg,
+                    rgba(170, 55, 55, 0.85) 0%,
+                    rgba(75, 30, 30, 0.92) 100%
+                );
+            }
+            .side-rail .side-nav-icon {
+                font-size: clamp(22px, 2.8vw, 32px);
                 font-weight: 700;
                 line-height: 1;
                 text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
                 pointer-events: none;
             }
-            .side-nav .side-nav-label {
-                position: absolute;
-                bottom: 14px;
-                font-size: 11px;
-                letter-spacing: 0.12em;
-                opacity: 0.85;
+            .side-rail .side-nav-label {
+                margin-top: 6px;
+                font-size: 10px;
+                letter-spacing: 0.14em;
+                opacity: 0.9;
                 pointer-events: none;
             }
         }
@@ -193,15 +227,25 @@
         <img id="viewer" src="" alt="Scripture Page">
     </div>
 
-    <!-- Desktop only: large side buttons in the empty left/right margins -->
-    <button type="button" class="side-nav side-nav-left" id="sideNext" title="Next page (←)" aria-label="Next page">
-        <span class="side-nav-icon">◀</span>
-        <span class="side-nav-label">NEXT</span>
-    </button>
-    <button type="button" class="side-nav side-nav-right" id="sidePrev" title="Previous page (→)" aria-label="Previous page">
-        <span class="side-nav-icon">▶</span>
-        <span class="side-nav-label">PREV</span>
-    </button>
+    <!-- Desktop only: all controls stacked on the RIGHT for easy mouse reach -->
+    <div class="side-rail" id="sideRail" aria-label="Page controls">
+        <button type="button" class="side-nav side-home" id="sideHome" title="Main first page (Home)" aria-label="Home — first main page">
+            <span class="side-nav-icon">🏠</span>
+            <span class="side-nav-label">HOME</span>
+        </button>
+        <button type="button" class="side-nav side-prev" id="sidePrev" title="Previous page (←)" aria-label="Previous page">
+            <span class="side-nav-icon">◀</span>
+            <span class="side-nav-label">PREV</span>
+        </button>
+        <button type="button" class="side-nav side-next" id="sideNext" title="Next page (→)" aria-label="Next page">
+            <span class="side-nav-icon">▶</span>
+            <span class="side-nav-label">NEXT</span>
+        </button>
+        <button type="button" class="side-nav side-end" id="sideEnd" title="Main last page (End)" aria-label="End — last main page">
+            <span class="side-nav-icon">🏁</span>
+            <span class="side-nav-label">END</span>
+        </button>
+    </div>
 
     <div class="toast" id="toast">Tap Top-Left for Menu | Gesture / Tap to Navigate</div>
 
@@ -488,7 +532,10 @@
             }
         }
 
-        /** Mouse click zones on the page (same map as touch taps; whole-book sides via buttons). */
+        /**
+         * Mouse click on page: left half = previous, right half = next (whole book).
+         * Top-left still opens menu; center still goes to main Home.
+         */
         function handleMouseClickZone(clientX, clientY) {
             const width = window.innerWidth;
             const height = window.innerHeight;
@@ -498,7 +545,6 @@
             const isLeft = x < width / 2;
             const isRight = x >= width / 2;
             const isTop = y < height / 2;
-            const isBottom = y >= height / 2;
             const isCenter =
                 (x > width * 0.35 && x < width * 0.65) &&
                 (y > height * 0.35 && y < height * 0.65);
@@ -507,61 +553,52 @@
                 goHome();
             } else if (isLeft && isTop) {
                 toggleMenu();
-            } else if (isRight && isBottom) {
-                // Desktop: click corners turn the whole book (like side buttons)
-                navbarNext();
-            } else if ((isRight && isTop) || (isLeft && isBottom)) {
-                navbarPrev();
             } else if (isLeft) {
-                navbarNext();
-            } else if (isRight) {
                 navbarPrev();
+            } else if (isRight) {
+                navbarNext();
             }
         }
 
         touchArea.addEventListener("click", function (e) {
             // Skip ghost clicks after a real touch gesture
             if (Date.now() < ignoreMouseClickUntil) return;
-            // Prefer side buttons on wide desktop; still allow click-to-turn
             handleMouseClickZone(e.clientX, e.clientY);
         }, false);
 
-        // Large side buttons: Next ◀ (left) / Prev ▶ (right) — matches navbar
-        const sideNext = document.getElementById("sideNext");
-        const sidePrev = document.getElementById("sidePrev");
-        if (sideNext) {
-            sideNext.addEventListener("click", function (e) {
+        // Right-side rail: Home / Prev / Next / End (desktop only UI)
+        function bindSideButton(id, fn) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener("click", function (e) {
                 e.preventDefault();
                 e.stopPropagation();
-                navbarNext();
+                fn();
             });
         }
-        if (sidePrev) {
-            sidePrev.addEventListener("click", function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                navbarPrev();
-            });
-        }
+        bindSideButton("sideHome", goHome);       // first page of main/
+        bindSideButton("sidePrev", navbarPrev);   // previous page
+        bindSideButton("sideNext", navbarNext);   // next page
+        bindSideButton("sideEnd", goEnd);         // last page of main/
 
-        // Keyboard: ← / PageDown / Space = next; → / PageUp / Backspace = prev
+        // Keyboard: ← = prev, → = next; Home/End = main first/last
         document.addEventListener("keydown", function (e) {
             const tag = (e.target && e.target.tagName) || "";
             if (tag === "INPUT" || tag === "TEXTAREA") return;
 
             switch (e.key) {
                 case "ArrowLeft":
+                case "PageUp":
+                case "Backspace":
+                    e.preventDefault();
+                    navbarPrev();
+                    break;
+                case "ArrowRight":
                 case "PageDown":
                 case " ":
                 case "Spacebar":
                     e.preventDefault();
                     navbarNext();
-                    break;
-                case "ArrowRight":
-                case "PageUp":
-                case "Backspace":
-                    e.preventDefault();
-                    navbarPrev();
                     break;
                 case "Home":
                     e.preventDefault();
@@ -592,7 +629,7 @@
             const toast = document.getElementById("toast");
             if (toast) {
                 toast.textContent =
-                    "Side buttons or ← → keys to turn pages · M = menu · J = jump · click page zones";
+                    "Right rail: Home · Prev · Next · End  |  ← → keys  |  M menu · J jump";
             }
         }
 
