@@ -712,10 +712,7 @@
             if (session === "frontRest") return frontCount >= 2;
             if (session === "main") return mainCount > 0;
             if (session === "afterRest") return afterCount >= 2;
-            if (session === "last") return afterCount >= 1 || (afterCount === 0 && images.length > 0 && mainCount === 0 && frontCount === 0);
-            // last page session: exists if there is at least one page after main,
-            // or if the book has pages and we treat final image as last
-            if (session === "last") return images.length > 0 && (afterCount >= 1 || (frontCount + mainCount > 0 && afterCount === 0));
+            if (session === "last") return afterCount >= 1;
             return false;
         }
 
