@@ -399,21 +399,23 @@
             }
             .side-dash .disc-sub {
                 margin-top: 3px;
-                font-size: clamp(10px, 1.4vw, 12px);
-                letter-spacing: 0.08em;
-                color: rgba(245, 230, 200, 0.7);
+                font-size: clamp(9px, 1.2vw, 11px);
+                letter-spacing: 0.04em;
+                color: rgba(245, 230, 200, 0.75);
+                max-width: 90%;
+                line-height: 1.2;
             }
             .side-dash .dash-pages {
-                font-size: 13px;
-                font-weight: 600;
+                font-size: 16px;
+                font-weight: 700;
                 color: #f5e6c8;
                 letter-spacing: 0.04em;
             }
             .side-dash .dash-label {
-                font-size: 9px;
-                letter-spacing: 0.12em;
-                color: rgba(245, 230, 200, 0.55);
-                text-transform: uppercase;
+                font-size: 12px;
+                letter-spacing: 0.08em;
+                color: rgba(245, 230, 200, 0.7);
+                font-weight: 600;
             }
 
             /* Left of page image, near bottom — same width/align as dashboard */
@@ -522,11 +524,11 @@
     <!-- Desktop: session disc dashboard (left upper, aligned with hints) -->
     <div class="side-dash" id="sideDash" aria-live="polite">
         <div class="sess-track" title="Book section (5 sessions)">
-            <span class="sess-chip" id="chipFirst">首</span>
+            <span class="sess-chip" id="chipFirst">面</span>
             <span class="sess-chip" id="chipFrontRest">前</span>
             <span class="sess-chip" id="chipMain">正</span>
             <span class="sess-chip" id="chipAfterRest">附</span>
-            <span class="sess-chip" id="chipLast">末</span>
+            <span class="sess-chip" id="chipLast">完</span>
         </div>
         <div class="disc-wrap">
             <svg viewBox="0 0 100 100" aria-hidden="true">
@@ -830,11 +832,11 @@
             const local = Math.min(total, Math.max(1, currentIndex - b.start + 1));
 
             const meta = {
-                first:     { name: "First",  chip: "chipFirst",     label: "opening page" },
-                frontRest: { name: "Front",  chip: "chipFrontRest", label: "front matter" },
-                main:      { name: "Main",   chip: "chipMain",      label: "sutra body" },
-                afterRest: { name: "After",  chip: "chipAfterRest", label: "appendix" },
-                last:      { name: "Last",   chip: "chipLast",      label: "closing page" },
+                first:     { name: "Front Cover",  chip: "chipFirst" },
+                frontRest: { name: "Pre-Session",  chip: "chipFrontRest" },
+                main:      { name: "Main",         chip: "chipMain" },
+                afterRest: { name: "Post-Session", chip: "chipAfterRest" },
+                last:      { name: "Back Cover",   chip: "chipLast" },
             };
             const m = meta[section] || meta.main;
             const pct = Math.round((local / total) * 100);
@@ -857,7 +859,7 @@
             const pagesEl = document.getElementById("dashPages");
             if (pagesEl) pagesEl.textContent = local + " / " + total;
             const labelEl = document.getElementById("dashLabel");
-            if (labelEl) labelEl.textContent = m.label;
+            if (labelEl) labelEl.textContent = "Page number";
 
             dash.dataset.section = section;
         }
