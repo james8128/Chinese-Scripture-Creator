@@ -105,18 +105,19 @@
         }
 
         /*
-        /*
          * Desktop-only D-pad grid, snug to the right edge of the page image:
          *        [ HOME ]
          *   [PREV]    [NEXT]
          *        [ END  ]
          *        (gap)
-         *        [ BACK ]   ← undo accidental jumps (history stack)
-         *        [ hints ]  ← small keyboard / click reminder
+         *        [ BACK ]
+         * Bottom of screen: keyboard / click reminder (one line per action).
          * Hidden on phones so Android WebView is unchanged.
-         * Page aspect ~ 550/890 (matches create_pages.py defaults).
          */
         .side-rail {
+            display: none;
+        }
+        .desktop-hints {
             display: none;
         }
 
@@ -127,14 +128,13 @@
                 --gap-back: 14px; /* space between End and Back */
                 display: grid;
                 grid-template-columns: var(--btn) var(--btn);
-                grid-template-rows: var(--btn) var(--btn) var(--btn) var(--gap-back) var(--btn) auto;
+                grid-template-rows: var(--btn) var(--btn) var(--btn) var(--gap-back) var(--btn);
                 grid-template-areas:
                     "home home"
                     "prev next"
                     "end  end"
                     "gap  gap"
-                    "back back"
-                    "hint hint";
+                    "back back";
                 gap: 8px;
                 position: fixed;
                 top: 50%;
@@ -190,46 +190,6 @@
                 min-height: var(--gap-back);
             }
             .side-rail .side-back { grid-area: back; }
-            /* Reminder panel: solid “card” so text stays readable in light or dark OS theme */
-            .side-rail .side-hints {
-                grid-area: hint;
-                margin-top: 4px;
-                padding: 8px 8px 9px;
-                border-radius: 12px;
-                font-size: 10px;
-                line-height: 1.45;
-                letter-spacing: 0.02em;
-                text-align: left;
-                pointer-events: none;
-                user-select: none;
-                /* Default: dark card + light ink (works on dark browser chrome too) */
-                color: #f3ead8;
-                background: rgba(22, 18, 14, 0.92);
-                border: 1px solid rgba(243, 234, 216, 0.28);
-                box-shadow:
-                    0 2px 10px rgba(0, 0, 0, 0.35),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.06);
-            }
-            .side-rail .side-hints strong {
-                font-weight: 700;
-                color: #ffe6b0;
-            }
-            .side-rail .side-hints .hint-line {
-                display: block;
-            }
-            @media (prefers-color-scheme: light) {
-                .side-rail .side-hints {
-                    color: #2a2218;
-                    background: rgba(250, 244, 232, 0.96);
-                    border: 1px solid rgba(42, 34, 24, 0.22);
-                    box-shadow:
-                        0 2px 10px rgba(0, 0, 0, 0.12),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.8);
-                }
-                .side-rail .side-hints strong {
-                    color: #5c3d1e;
-                }
-            }
             .side-rail .side-nav:hover {
                 background: linear-gradient(
                     160deg,
@@ -305,6 +265,54 @@
                 opacity: 0.9;
                 pointer-events: none;
             }
+
+            /* Bottom reminder: one instruction per line; readable in light & dark OS themes */
+            .desktop-hints {
+                display: block;
+                position: fixed;
+                left: 50%;
+                bottom: 14px;
+                transform: translateX(-50%);
+                z-index: 85;
+                max-width: min(520px, 92vw);
+                padding: 12px 18px 14px;
+                border-radius: 14px;
+                font-size: 13.5px;
+                line-height: 1.55;
+                letter-spacing: 0.01em;
+                text-align: left;
+                pointer-events: none;
+                user-select: none;
+                color: #f3ead8;
+                background: rgba(22, 18, 14, 0.93);
+                border: 1px solid rgba(243, 234, 216, 0.3);
+                box-shadow:
+                    0 4px 18px rgba(0, 0, 0, 0.4),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            }
+            .desktop-hints .hint-title {
+                display: block;
+                margin-bottom: 6px;
+                font-size: 14px;
+                font-weight: 700;
+                color: #ffe6b0;
+            }
+            .desktop-hints .hint-line {
+                display: block;
+            }
+            @media (prefers-color-scheme: light) {
+                .desktop-hints {
+                    color: #2a2218;
+                    background: rgba(250, 244, 232, 0.97);
+                    border: 1px solid rgba(42, 34, 24, 0.22);
+                    box-shadow:
+                        0 4px 16px rgba(0, 0, 0, 0.12),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.85);
+                }
+                .desktop-hints .hint-title {
+                    color: #5c3d1e;
+                }
+            }
         }
     </style>
 </head>
@@ -348,12 +356,17 @@
             <span class="side-nav-icon">↩</span>
             <span class="side-nav-label">BACK</span>
         </button>
-        <div class="side-hints" id="sideHints" aria-hidden="true">
-            <span class="hint-line"><strong>Click</strong> L prev · R next</span>
-            <span class="hint-line">Center home · ↖ back</span>
-            <span class="hint-line"><strong>Keys</strong> ←→ turn · ↑↓ home/end</span>
-            <span class="hint-line">B back · J jump</span>
-        </div>
+    </div>
+
+    <!-- Desktop only: bottom reminder (click zones + keys). Hidden on Android. -->
+    <div class="desktop-hints" id="desktopHints" aria-hidden="true">
+        <span class="hint-title">** Main session navigation **</span>
+        <span class="hint-line">First Page: Center click / Home key or ↑</span>
+        <span class="hint-line">Previous Page: Left-bottom click / Left Arrow key (←)</span>
+        <span class="hint-line">Next Page: Right-bottom click / Right Arrow key (→)</span>
+        <span class="hint-line">Last Page: End key or ↓</span>
+        <span class="hint-line">Jump to Page: J key + page number</span>
+        <span class="hint-line">Back / Undo: Top-left click / B key (no section limit)</span>
     </div>
 
     <div class="toast" id="toast">Tap Top-Left for Menu | Gesture / Tap to Navigate</div>
@@ -680,11 +693,12 @@
         }
 
         /**
-         * Mouse click on page (PC only path):
-         * - Center → main Home
-         * - Left half → previous, right half → next
-         * - Top-left → Back (history), not the Android menu
-         * Android touch still uses handleTapZone (menu on top-left) — unchanged.
+         * Mouse click zones (PC only) — main session only, except Back.
+         * - Center → first main page
+         * - Left-bottom → previous main page
+         * - Right-bottom → next main page
+         * - Top-left → Back / undo (history; no section limit)
+         * Android touch still uses handleTapZone — unchanged.
          */
         function handleMouseClickZone(clientX, clientY) {
             const width = window.innerWidth;
@@ -695,6 +709,7 @@
             const isLeft = x < width / 2;
             const isRight = x >= width / 2;
             const isTop = y < height / 2;
+            const isBottom = y >= height / 2;
             const isCenter =
                 (x > width * 0.35 && x < width * 0.65) &&
                 (y > height * 0.35 && y < height * 0.65);
@@ -703,10 +718,10 @@
                 goHome();
             } else if (isLeft && isTop) {
                 goBackInHistory();
-            } else if (isLeft) {
-                navbarPrev();
-            } else if (isRight) {
-                navbarNext();
+            } else if (isLeft && isBottom) {
+                gesturePrev();
+            } else if (isRight && isBottom) {
+                gestureNext();
             }
         }
 
@@ -716,7 +731,7 @@
             handleMouseClickZone(e.clientX, e.clientY);
         }, false);
 
-        // Right-side rail: Home / Prev / Next / End (desktop only UI)
+        // Right-side rail (desktop only)
         function bindSideButton(id, fn) {
             const el = document.getElementById(id);
             if (!el) return;
@@ -727,28 +742,24 @@
             });
         }
         bindSideButton("sideHome", goHome);           // first page of main/
-        bindSideButton("sidePrev", navbarPrev);       // previous page
-        bindSideButton("sideNext", navbarNext);       // next page
+        bindSideButton("sidePrev", gesturePrev);      // previous main page
+        bindSideButton("sideNext", gestureNext);      // next main page
         bindSideButton("sideEnd", goEnd);             // last page of main/
-        bindSideButton("sideBack", goBackInHistory);  // undo path (history)
+        bindSideButton("sideBack", goBackInHistory);  // undo path (history, unlimited)
 
-        // Keyboard (PC): ← prev · → next · ↑ home · ↓ end · B back  (no M — Android menu only)
+        // Keyboard (PC): main session for turns/home/end; Back unlimited
         document.addEventListener("keydown", function (e) {
             const tag = (e.target && e.target.tagName) || "";
             if (tag === "INPUT" || tag === "TEXTAREA") return;
 
             switch (e.key) {
                 case "ArrowLeft":
-                case "PageUp":
                     e.preventDefault();
-                    navbarPrev();
+                    gesturePrev();
                     break;
                 case "ArrowRight":
-                case "PageDown":
-                case " ":
-                case "Spacebar":
                     e.preventDefault();
-                    navbarNext();
+                    gestureNext();
                     break;
                 case "ArrowUp":
                 case "Home":
@@ -775,13 +786,12 @@
             }
         });
 
-        // Desktop toast hint (does not change Android short message timing)
+        // Desktop: show bottom hints; keep Android toast as-is
         if (isDesktopPointer()) {
             document.body.classList.add("desktop-ui");
             const toast = document.getElementById("toast");
             if (toast) {
-                toast.textContent =
-                    "See shortcuts under BACK  ·  ↖ click = back  ·  B / J keys";
+                toast.style.display = "none";
             }
         }
 

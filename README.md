@@ -125,7 +125,7 @@ The **`release/`** package — **excluding** the PC-only helper files `server.py
 | Platform | Status |
 |----------|--------|
 | **Android** (sample APK / WebView) | **Fully functional** — original touch gestures and menu unchanged. |
-| **PC browser** (`server.py`) | **Mouse + keyboard** — D-pad grid: **Home** / **Prev**·**Next** / **End** / **Back** (history); click L/R turn, center home, **top-left back**; keys `←`/`→`, `↑`/`↓`, `B`, `J`. Short reminder under the Back button. (Android top-left still opens the menu.) |
+| **PC browser** (`server.py`) | **Main-session** click/keys: center/`Home`/`↑` first page; left-bottom/`←` prev; right-bottom/`→` next; `End`/`↓` last; `J` jump; **Back** (`B` / top-left click) undoes history with no section limit. Bottom on-screen reminder lists each action. Side grid mirrors Home/Prev/Next/End/Back. (Android top-left still opens the menu.) |
 
 ---
 
