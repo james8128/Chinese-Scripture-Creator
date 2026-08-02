@@ -112,6 +112,7 @@
          *        [ END  ]
          *        (gap)
          *        [ BACK ]   ← undo accidental jumps (history stack)
+         *        [ hints ]  ← small keyboard / click reminder
          * Hidden on phones so Android WebView is unchanged.
          * Page aspect ~ 550/890 (matches create_pages.py defaults).
          */
@@ -126,13 +127,14 @@
                 --gap-back: 14px; /* space between End and Back */
                 display: grid;
                 grid-template-columns: var(--btn) var(--btn);
-                grid-template-rows: var(--btn) var(--btn) var(--btn) var(--gap-back) var(--btn);
+                grid-template-rows: var(--btn) var(--btn) var(--btn) var(--gap-back) var(--btn) auto;
                 grid-template-areas:
                     "home home"
                     "prev next"
                     "end  end"
                     "gap  gap"
-                    "back back";
+                    "back back"
+                    "hint hint";
                 gap: 8px;
                 position: fixed;
                 top: 50%;
@@ -188,6 +190,46 @@
                 min-height: var(--gap-back);
             }
             .side-rail .side-back { grid-area: back; }
+            /* Reminder panel: solid “card” so text stays readable in light or dark OS theme */
+            .side-rail .side-hints {
+                grid-area: hint;
+                margin-top: 4px;
+                padding: 8px 8px 9px;
+                border-radius: 12px;
+                font-size: 10px;
+                line-height: 1.45;
+                letter-spacing: 0.02em;
+                text-align: left;
+                pointer-events: none;
+                user-select: none;
+                /* Default: dark card + light ink (works on dark browser chrome too) */
+                color: #f3ead8;
+                background: rgba(22, 18, 14, 0.92);
+                border: 1px solid rgba(243, 234, 216, 0.28);
+                box-shadow:
+                    0 2px 10px rgba(0, 0, 0, 0.35),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            }
+            .side-rail .side-hints strong {
+                font-weight: 700;
+                color: #ffe6b0;
+            }
+            .side-rail .side-hints .hint-line {
+                display: block;
+            }
+            @media (prefers-color-scheme: light) {
+                .side-rail .side-hints {
+                    color: #2a2218;
+                    background: rgba(250, 244, 232, 0.96);
+                    border: 1px solid rgba(42, 34, 24, 0.22);
+                    box-shadow:
+                        0 2px 10px rgba(0, 0, 0, 0.12),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+                }
+                .side-rail .side-hints strong {
+                    color: #5c3d1e;
+                }
+            }
             .side-rail .side-nav:hover {
                 background: linear-gradient(
                     160deg,
@@ -302,10 +344,16 @@
             <span class="side-nav-label">END</span>
         </button>
         <div class="side-gap" aria-hidden="true"></div>
-        <button type="button" class="side-nav side-back" id="sideBack" title="Back to previous view (B)" aria-label="Back in page history" disabled>
+        <button type="button" class="side-nav side-back" id="sideBack" title="Back to previous view (B) · also top-left click" aria-label="Back in page history" disabled>
             <span class="side-nav-icon">↩</span>
             <span class="side-nav-label">BACK</span>
         </button>
+        <div class="side-hints" id="sideHints" aria-hidden="true">
+            <span class="hint-line"><strong>Click</strong> L prev · R next</span>
+            <span class="hint-line">Center home · ↖ back</span>
+            <span class="hint-line"><strong>Keys</strong> ←→ turn · ↑↓ home/end</span>
+            <span class="hint-line">B back · J jump</span>
+        </div>
     </div>
 
     <div class="toast" id="toast">Tap Top-Left for Menu | Gesture / Tap to Navigate</div>
@@ -632,10 +680,10 @@
         }
 
         /**
-         * Mouse click on page (PC only path): same turn zones as Android where useful.
+         * Mouse click on page (PC only path):
          * - Center → main Home
          * - Left half → previous, right half → next
-         * - Top-left does NOT open the Android menu on PC (use the side grid instead).
+         * - Top-left → Back (history), not the Android menu
          * Android touch still uses handleTapZone (menu on top-left) — unchanged.
          */
         function handleMouseClickZone(clientX, clientY) {
@@ -646,12 +694,15 @@
 
             const isLeft = x < width / 2;
             const isRight = x >= width / 2;
+            const isTop = y < height / 2;
             const isCenter =
                 (x > width * 0.35 && x < width * 0.65) &&
                 (y > height * 0.35 && y < height * 0.65);
 
             if (isCenter) {
                 goHome();
+            } else if (isLeft && isTop) {
+                goBackInHistory();
             } else if (isLeft) {
                 navbarPrev();
             } else if (isRight) {
@@ -730,7 +781,7 @@
             const toast = document.getElementById("toast");
             if (toast) {
                 toast.textContent =
-                    "Grid + Back (history)  ·  ↑↓ Home/End  ·  ←→ turn  ·  B back  ·  J jump";
+                    "See shortcuts under BACK  ·  ↖ click = back  ·  B / J keys";
             }
         }
 
