@@ -557,8 +557,11 @@
         }
 
         /**
-         * Mouse click on page: left half = previous, right half = next (whole book).
-         * Top-left still opens menu; center still goes to main Home.
+         * Mouse click on page (PC only path): same turn zones as Android where useful.
+         * - Center → main Home
+         * - Left half → previous, right half → next
+         * - Top-left does NOT open the Android menu on PC (use the side grid instead).
+         * Android touch still uses handleTapZone (menu on top-left) — unchanged.
          */
         function handleMouseClickZone(clientX, clientY) {
             const width = window.innerWidth;
@@ -568,15 +571,12 @@
 
             const isLeft = x < width / 2;
             const isRight = x >= width / 2;
-            const isTop = y < height / 2;
             const isCenter =
                 (x > width * 0.35 && x < width * 0.65) &&
                 (y > height * 0.35 && y < height * 0.65);
 
             if (isCenter) {
                 goHome();
-            } else if (isLeft && isTop) {
-                toggleMenu();
             } else if (isLeft) {
                 navbarPrev();
             } else if (isRight) {
