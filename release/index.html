@@ -332,8 +332,8 @@
             .side-dash .sess-chip {
                 flex: 1;
                 text-align: center;
-                font-size: 10px;
-                letter-spacing: 0.06em;
+                font-size: 9px;
+                letter-spacing: 0.04em;
                 padding: 5px 0 6px;
                 border-radius: 8px;
                 color: rgba(243, 234, 216, 0.45);
@@ -488,11 +488,11 @@
 
     <!-- Desktop only: session jump + page controls (not used on Android) -->
     <div class="side-rail" id="sideRail" aria-label="Page controls">
-        <button type="button" class="side-nav side-sprev" id="sideSessPrev" title="Previous session (front ← main ← after)" aria-label="Previous session">
+        <button type="button" class="side-nav side-sprev" id="sideSessPrev" title="Previous session (首←前←正←附←末)" aria-label="Previous session">
             <span class="side-nav-icon">◀◀</span>
             <span class="side-nav-label">PREV</span>
         </button>
-        <button type="button" class="side-nav side-snext" id="sideSessNext" title="Next session (front → main → after)" aria-label="Next session">
+        <button type="button" class="side-nav side-snext" id="sideSessNext" title="Next session (首→前→正→附→末)" aria-label="Next session">
             <span class="side-nav-icon">▶▶</span>
             <span class="side-nav-label">NEXT</span>
         </button>
@@ -521,10 +521,12 @@
 
     <!-- Desktop: session disc dashboard (left upper, aligned with hints) -->
     <div class="side-dash" id="sideDash" aria-live="polite">
-        <div class="sess-track" title="Book section">
-            <span class="sess-chip" id="chipFront">前</span>
+        <div class="sess-track" title="Book section (5 sessions)">
+            <span class="sess-chip" id="chipFirst">首</span>
+            <span class="sess-chip" id="chipFrontRest">前</span>
             <span class="sess-chip" id="chipMain">正</span>
-            <span class="sess-chip" id="chipAfter">附</span>
+            <span class="sess-chip" id="chipAfterRest">附</span>
+            <span class="sess-chip" id="chipLast">末</span>
         </div>
         <div class="disc-wrap">
             <svg viewBox="0 0 100 100" aria-hidden="true">
@@ -660,7 +662,7 @@
                 mainStartIndex = frontCount;
                 mainEndIndex = mainCount > 0 ? frontCount + mainCount - 1 : -1;
                 lastMainIndex = mainStartIndex;
-                activeSession = mainCount > 0 ? "main" : (frontCount > 0 ? "front" : "after");
+                activeSession = mainCount > 0 ? "main" : (frontCount > 0 ? "first" : "last");
 
                 if (mainCount > 0) {
                     showPage(mainStartIndex);
@@ -686,31 +688,72 @@
             }
         }
 
+        /*
+         * Five sessions:
+         *   first      — page 0 only (cover / first front page)
+         *   frontRest  — rest of front matter
+         *   main       — sutra body
+         *   afterRest  — after section except the final page
+         *   last       — final page of the book alone
+         */
         function sessionOfIndex(i) {
-            if (i < mainStartIndex) return "front";
+            if (images.length === 0) return "main";
+            const lastIdx = images.length - 1;
+            if (i <= 0 && frontCount > 0) return "first";
+            if (i < mainStartIndex) return "frontRest";
             if (i <= mainEndIndex) return "main";
-            return "after";
+            if (afterCount > 0 && i >= lastIdx) return "last";
+            if (i > mainEndIndex) return "afterRest";
+            return "main";
         }
 
         function sessionHasPages(session) {
-            if (session === "front") return frontCount > 0;
+            if (session === "first") return frontCount >= 1;
+            if (session === "frontRest") return frontCount >= 2;
             if (session === "main") return mainCount > 0;
-            return afterCount > 0;
+            if (session === "afterRest") return afterCount >= 2;
+            if (session === "last") return afterCount >= 1 || (afterCount === 0 && images.length > 0 && mainCount === 0 && frontCount === 0);
+            // last page session: exists if there is at least one page after main,
+            // or if the book has pages and we treat final image as last
+            if (session === "last") return images.length > 0 && (afterCount >= 1 || (frontCount + mainCount > 0 && afterCount === 0));
+            return false;
         }
 
         function getSessionBounds(session) {
-            if (session === "front") {
-                return { start: 0, end: Math.max(0, frontCount - 1) };
+            const lastIdx = Math.max(0, images.length - 1);
+            if (session === "first") {
+                return { start: 0, end: 0 };
+            }
+            if (session === "frontRest") {
+                // indices 1 .. mainStartIndex-1
+                return { start: 1, end: Math.max(1, mainStartIndex - 1) };
             }
             if (session === "main") {
-                return { start: mainStartIndex, end: Math.max(mainStartIndex, mainEndIndex) };
+                return {
+                    start: mainStartIndex,
+                    end: Math.max(mainStartIndex, mainEndIndex),
+                };
             }
-            const start = mainEndIndex + 1;
-            return { start: start, end: Math.max(start, images.length - 1) };
+            if (session === "afterRest") {
+                // mainEndIndex+1 .. lastIdx-1
+                const start = mainEndIndex + 1;
+                const end = Math.max(start, lastIdx - 1);
+                return { start: start, end: end };
+            }
+            // last
+            return { start: lastIdx, end: lastIdx };
         }
 
         function availableSessions() {
-            return ["front", "main", "after"].filter(sessionHasPages);
+            const order = ["first", "frontRest", "main", "afterRest", "last"];
+            return order.filter(function (s) {
+                if (s === "first") return frontCount >= 1;
+                if (s === "frontRest") return frontCount >= 2;
+                if (s === "main") return mainCount > 0;
+                if (s === "afterRest") return afterCount >= 2;
+                if (s === "last") return afterCount >= 1;
+                return false;
+            });
         }
 
         /** Prev/next page limited to the active session (PC). */
@@ -724,7 +767,7 @@
             if (currentIndex < b.end) showPage(currentIndex + 1);
         }
 
-        /** Jump to previous/next session; front/after → first page; main → last position. */
+        /** Jump to previous/next session. */
         function jumpSession(dir) {
             const order = availableSessions();
             if (order.length === 0) return;
@@ -736,7 +779,7 @@
         }
 
         function goToSession(session) {
-            if (!sessionHasPages(session)) return;
+            if (availableSessions().indexOf(session) < 0) return;
             // Remember main position before leaving main
             if (
                 currentIndex >= mainStartIndex &&
@@ -752,6 +795,7 @@
                 }
                 showPage(idx);
             } else {
+                // first / frontRest / afterRest / last → first page of that session
                 showPage(getSessionBounds(session).start);
             }
             updateSessionJumpButtons();
@@ -773,48 +817,35 @@
         }
 
         /**
-         * Desktop dashboard under BACK:
-         * - which section (front / main / after)
-         * - progress disc = % through that section
-         * - page n / N within the section
+         * Desktop dashboard:
+         * - which of 5 sessions (首 前 正 附 末)
+         * - progress disc = % through that session
+         * - page n / N within the session
          */
         function updateSessionDashboard() {
             const dash = document.getElementById("sideDash");
             if (!dash || images.length === 0) return;
 
             const CIRC = 2 * Math.PI * 40; // r=40 in SVG
-            let section = "main";
-            let sectionName = "Main";
-            let local = 1;
-            let total = Math.max(1, mainCount);
-            let chipId = "chipMain";
+            const section = sessionOfIndex(currentIndex);
+            const b = getSessionBounds(section);
+            const total = Math.max(1, b.end - b.start + 1);
+            const local = Math.min(total, Math.max(1, currentIndex - b.start + 1));
 
-            if (currentIndex < mainStartIndex) {
-                section = "front";
-                sectionName = "Front";
-                local = currentIndex + 1;
-                total = Math.max(1, frontCount);
-                chipId = "chipFront";
-            } else if (currentIndex <= mainEndIndex) {
-                section = "main";
-                sectionName = "Main";
-                local = (currentIndex - mainStartIndex) + 1;
-                total = Math.max(1, mainCount);
-                chipId = "chipMain";
-            } else {
-                section = "after";
-                sectionName = "After";
-                local = currentIndex - mainEndIndex;
-                total = Math.max(1, afterCount);
-                chipId = "chipAfter";
-            }
-
+            const meta = {
+                first:     { name: "First",  chip: "chipFirst",     label: "opening page" },
+                frontRest: { name: "Front",  chip: "chipFrontRest", label: "front matter" },
+                main:      { name: "Main",   chip: "chipMain",      label: "sutra body" },
+                afterRest: { name: "After",  chip: "chipAfterRest", label: "appendix" },
+                last:      { name: "Last",   chip: "chipLast",      label: "closing page" },
+            };
+            const m = meta[section] || meta.main;
             const pct = Math.round((local / total) * 100);
             const offset = CIRC * (1 - local / total);
 
-            ["chipFront", "chipMain", "chipAfter"].forEach(function (id) {
+            ["chipFirst", "chipFrontRest", "chipMain", "chipAfterRest", "chipLast"].forEach(function (id) {
                 const el = document.getElementById(id);
-                if (el) el.classList.toggle("active", id === chipId);
+                if (el) el.classList.toggle("active", id === m.chip);
             });
 
             const fg = document.getElementById("discFg");
@@ -825,15 +856,11 @@
             const pctEl = document.getElementById("discPct");
             if (pctEl) pctEl.innerHTML = pct + "<span>%</span>";
             const sessEl = document.getElementById("discSession");
-            if (sessEl) sessEl.textContent = sectionName;
+            if (sessEl) sessEl.textContent = m.name;
             const pagesEl = document.getElementById("dashPages");
             if (pagesEl) pagesEl.textContent = local + " / " + total;
             const labelEl = document.getElementById("dashLabel");
-            if (labelEl) {
-                labelEl.textContent =
-                    section === "front" ? "front matter" :
-                    section === "after" ? "appendix" : "sutra body";
-            }
+            if (labelEl) labelEl.textContent = m.label;
 
             dash.dataset.section = section;
         }
