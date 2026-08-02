@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Scripture Reader</title>
+    <title>佛說天地八陽神咒經</title>
     <style>
         * {
             box-sizing: border-box;
@@ -292,7 +292,56 @@
                 pointer-events: none;
             }
 
-            /* Session dashboard: left of image, upper — same width/align as hints */
+            /* Desktop title: above progress block, same left column width */
+            .desktop-title {
+                display: none;
+            }
+            body.desktop-ui .desktop-title {
+                display: block;
+                position: fixed;
+                top: max(14px, 2.8vh);
+                right: var(--left-col-right);
+                left: auto;
+                width: var(--left-col-w);
+                max-width: var(--left-col-w);
+                box-sizing: border-box;
+                z-index: 86;
+                padding: 12px 14px 13px;
+                border-radius: 14px;
+                text-align: center;
+                pointer-events: none;
+                user-select: none;
+                font-size: clamp(15px, 1.55vw, 18px);
+                font-weight: 700;
+                letter-spacing: 0.12em;
+                line-height: 1.45;
+                color: #ffe6b0;
+                text-shadow:
+                    0 1px 0 rgba(0, 0, 0, 0.45),
+                    0 0 18px rgba(232, 201, 138, 0.25);
+                background: linear-gradient(
+                    165deg,
+                    rgba(32, 24, 16, 0.94) 0%,
+                    rgba(20, 15, 12, 0.96) 100%
+                );
+                border: 1px solid rgba(255, 230, 176, 0.35);
+                box-shadow:
+                    0 4px 16px rgba(0, 0, 0, 0.4),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            }
+            @media (prefers-color-scheme: light) {
+                body.desktop-ui .desktop-title {
+                    color: #5c3d1e;
+                    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+                    background: rgba(250, 244, 232, 0.97);
+                    border: 1px solid rgba(92, 61, 30, 0.28);
+                    box-shadow:
+                        0 4px 14px rgba(0, 0, 0, 0.1),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.85);
+                }
+            }
+
+            /* Session dashboard: left of image, under title — same width/align as hints */
             .side-dash {
                 display: none;
             }
@@ -302,7 +351,8 @@
                 align-items: center;
                 gap: 8px;
                 position: fixed;
-                top: max(16px, 3.5vh);
+                /* Clear space below the title card */
+                top: max(88px, calc(2.8vh + 72px));
                 right: var(--left-col-right);
                 left: auto;
                 width: var(--left-col-w);
@@ -523,7 +573,10 @@
         </button>
     </div>
 
-    <!-- Desktop: session disc dashboard (left upper, aligned with hints) -->
+    <!-- Desktop: title above progress (same left column as dash + hints) -->
+    <div class="desktop-title" id="desktopTitle">佛說天地八陽神咒經</div>
+
+    <!-- Desktop: session disc dashboard (left upper, under title) -->
     <div class="side-dash" id="sideDash" aria-live="polite">
         <!-- Visual order R→L (Chinese): 完 附 正 前 面 — ids unchanged for logic -->
         <div class="sess-track" title="Book section (5 sessions)">
@@ -558,7 +611,7 @@
     <div class="desktop-hints" id="desktopHints" aria-hidden="true">
         <span class="hint-title">Session navigation</span>
         <span class="hint-line">Session jump: ◀◀ / ▶▶</span>
-        <span class="hint-line">First of main: Center click / Home key</span>
+        <span class="hint-line">1st page of Main session: Center click / Home key</span>
         <span class="hint-line">Previous page: ▶ / Left-bottom click / Right-upper click / ↑ key</span>
         <span class="hint-line">Next page: ◀ / Right-bottom click / ↓ key</span>
         <span class="hint-line">Last page: 🏁 / End key</span>
