@@ -105,8 +105,12 @@
         }
 
         /*
-         * Desktop-only control rail on the RIGHT margin (Home / Prev / Next / End).
-         * Hidden on phones / coarse pointers so Android WebView stays unchanged.
+         * Desktop-only D-pad grid, snug to the right edge of the page image:
+         *        [ HOME ]
+         *   [PREV]    [NEXT]
+         *        [ END  ]
+         * Hidden on phones so Android WebView is unchanged.
+         * Page aspect ~ 550/890 (matches create_pages.py defaults).
          */
         .side-rail {
             display: none;
@@ -114,31 +118,47 @@
 
         @media (hover: hover) and (pointer: fine) and (min-width: 700px) {
             .side-rail {
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                gap: 12px;
+                --page-aspect: 0.618; /* width/height ≈ 550/890 */
+                --btn: min(76px, 9.5vw, 12vh);
+                display: grid;
+                grid-template-columns: var(--btn) var(--btn);
+                grid-template-rows: var(--btn) var(--btn) var(--btn);
+                grid-template-areas:
+                    "home home"
+                    "prev next"
+                    "end  end";
+                gap: 8px;
                 position: fixed;
                 top: 50%;
-                right: max(10px, min(28px, 2.5vw));
+                /* Sit just to the right of the contained page image */
+                left: calc(50% + min(50vw, 50vh * var(--page-aspect)) + 8px);
+                right: auto;
                 transform: translateY(-50%);
                 z-index: 80;
-                padding: 12px 10px;
-                border-radius: 22px;
-                background: rgba(18, 14, 10, 0.35);
+                padding: 10px;
+                border-radius: 20px;
+                background: rgba(18, 14, 10, 0.38);
                 box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
                 backdrop-filter: blur(6px);
+            }
+            /* If the rail would go off-screen, pin it to the window edge */
+            @supports (width: max(1px, 2px)) {
+                .side-rail {
+                    left: min(
+                        calc(50% + min(50vw, 50vh * var(--page-aspect)) + 8px),
+                        calc(100vw - (2 * var(--btn) + 36px))
+                    );
+                }
             }
             .side-rail .side-nav {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                width: min(88px, 11vw);
-                height: min(88px, 14vh);
-                min-height: 72px;
+                width: 100%;
+                height: 100%;
                 border: none;
-                border-radius: 16px;
+                border-radius: 14px;
                 cursor: pointer;
                 color: #f5e6c8;
                 background: linear-gradient(
@@ -152,6 +172,10 @@
                 transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
                 -webkit-tap-highlight-color: transparent;
             }
+            .side-rail .side-home { grid-area: home; }
+            .side-rail .side-prev { grid-area: prev; }
+            .side-rail .side-next { grid-area: next; }
+            .side-rail .side-end  { grid-area: end; }
             .side-rail .side-nav:hover {
                 background: linear-gradient(
                     160deg,
@@ -194,16 +218,16 @@
                 );
             }
             .side-rail .side-nav-icon {
-                font-size: clamp(22px, 2.8vw, 32px);
+                font-size: clamp(20px, 2.4vw, 28px);
                 font-weight: 700;
                 line-height: 1;
                 text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
                 pointer-events: none;
             }
             .side-rail .side-nav-label {
-                margin-top: 6px;
-                font-size: 10px;
-                letter-spacing: 0.14em;
+                margin-top: 4px;
+                font-size: 9px;
+                letter-spacing: 0.12em;
                 opacity: 0.9;
                 pointer-events: none;
             }
@@ -227,9 +251,9 @@
         <img id="viewer" src="" alt="Scripture Page">
     </div>
 
-    <!-- Desktop only: all controls stacked on the RIGHT for easy mouse reach -->
+    <!-- Desktop only: D-pad grid beside the page image (not used on Android) -->
     <div class="side-rail" id="sideRail" aria-label="Page controls">
-        <button type="button" class="side-nav side-home" id="sideHome" title="Main first page (Home)" aria-label="Home — first main page">
+        <button type="button" class="side-nav side-home" id="sideHome" title="Main first page (↑ / Home)" aria-label="Home — first main page">
             <span class="side-nav-icon">🏠</span>
             <span class="side-nav-label">HOME</span>
         </button>
@@ -241,7 +265,7 @@
             <span class="side-nav-icon">▶</span>
             <span class="side-nav-label">NEXT</span>
         </button>
-        <button type="button" class="side-nav side-end" id="sideEnd" title="Main last page (End)" aria-label="End — last main page">
+        <button type="button" class="side-nav side-end" id="sideEnd" title="Main last page (↓ / End)" aria-label="End — last main page">
             <span class="side-nav-icon">🏁</span>
             <span class="side-nav-label">END</span>
         </button>
@@ -581,7 +605,7 @@
         bindSideButton("sideNext", navbarNext);   // next page
         bindSideButton("sideEnd", goEnd);         // last page of main/
 
-        // Keyboard: ← = prev, → = next; Home/End = main first/last
+        // Keyboard (PC): ← prev · → next · ↑ home · ↓ end  (no M — menu is Android/touch)
         document.addEventListener("keydown", function (e) {
             const tag = (e.target && e.target.tagName) || "";
             if (tag === "INPUT" || tag === "TEXTAREA") return;
@@ -600,18 +624,15 @@
                     e.preventDefault();
                     navbarNext();
                     break;
+                case "ArrowUp":
                 case "Home":
                     e.preventDefault();
                     goHome();
                     break;
+                case "ArrowDown":
                 case "End":
                     e.preventDefault();
                     goEnd();
-                    break;
-                case "m":
-                case "M":
-                    e.preventDefault();
-                    toggleMenu();
                     break;
                 case "j":
                 case "J":
@@ -629,7 +650,7 @@
             const toast = document.getElementById("toast");
             if (toast) {
                 toast.textContent =
-                    "Right rail: Home · Prev · Next · End  |  ← → keys  |  M menu · J jump";
+                    "Grid: Home / Prev / Next / End  ·  ↑ Home · ↓ End · ← → turn  ·  J jump";
             }
         }
 
