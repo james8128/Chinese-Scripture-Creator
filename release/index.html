@@ -490,12 +490,12 @@
 
     <!-- Desktop only: session jump + page controls (not used on Android) -->
     <div class="side-rail" id="sideRail" aria-label="Page controls">
-        <!-- Icons/positions fixed: left-pointing = NEXT, right-pointing = PREV (page on ◀◀/▶▶, session on ◀/▶) -->
-        <button type="button" class="side-nav side-sprev" id="sideSessPrev" title="Next page in current session" aria-label="Next page">
+        <!-- Session row (◀◀ / ▶▶): Chinese R→L — left = next session, right = prev session -->
+        <button type="button" class="side-nav side-sprev" id="sideSessPrev" title="Next session (面→前→正→附→完)" aria-label="Next session">
             <span class="side-nav-icon">◀◀</span>
             <span class="side-nav-label">NEXT</span>
         </button>
-        <button type="button" class="side-nav side-snext" id="sideSessNext" title="Previous page in current session" aria-label="Previous page">
+        <button type="button" class="side-nav side-snext" id="sideSessNext" title="Previous session (面←前←正←附←完)" aria-label="Previous session">
             <span class="side-nav-icon">▶▶</span>
             <span class="side-nav-label">PREV</span>
         </button>
@@ -503,11 +503,12 @@
             <span class="side-nav-icon">🏠</span>
             <span class="side-nav-label">HOME</span>
         </button>
-        <button type="button" class="side-nav side-prev" id="sidePrev" title="Next session (面→前→正→附→完)" aria-label="Next session">
+        <!-- Page row (◀ / ▶): Chinese R→L — left = next page, right = prev page -->
+        <button type="button" class="side-nav side-prev" id="sidePrev" title="Next page in current session" aria-label="Next page">
             <span class="side-nav-icon">◀</span>
             <span class="side-nav-label">NEXT</span>
         </button>
-        <button type="button" class="side-nav side-next" id="sideNext" title="Previous session (面←前←正←附←完)" aria-label="Previous session">
+        <button type="button" class="side-nav side-next" id="sideNext" title="Previous page in current session" aria-label="Previous page">
             <span class="side-nav-icon">▶</span>
             <span class="side-nav-label">PREV</span>
         </button>
@@ -555,6 +556,7 @@
     <!-- Desktop only: bottom reminder (click zones + keys). Hidden on Android. -->
     <div class="desktop-hints" id="desktopHints" aria-hidden="true">
         <span class="hint-title">Session navigation</span>
+        <span class="hint-line">Session jump: ◀◀ / ▶▶ buttons (or [ / ])</span>
         <span class="hint-line">First of main: Center click / Home key or ↑</span>
         <span class="hint-line">Previous page: Left-bottom click / ←</span>
         <span class="hint-line">Next page: Right-bottom click / →</span>
@@ -801,27 +803,27 @@
         }
 
         /**
-         * Enable/disable rail buttons after the function swap:
-         *   ◀◀ / ▶▶  → page next / page prev  (ids sideSessPrev / sideSessNext)
-         *   ◀  / ▶   → session next / session prev  (ids sidePrev / sideNext)
-         * Icons & positions unchanged; keyboard/clicks still use original mappings.
+         * Chinese R→L on both rows (icons stay put):
+         *   Session ◀◀ NEXT / ▶▶ PREV
+         *   Page    ◀  NEXT / ▶  PREV
+         * Keyboard & click zones keep their own mappings.
          */
         function updateSessionJumpButtons() {
             const order = availableSessions();
             const i = order.indexOf(activeSession);
             const b = getSessionBounds(activeSession);
 
-            // Double-arrow row = page turn (left icon NEXT, right icon PREV)
-            const pageNextBtn = document.getElementById("sideSessPrev"); // ◀◀
-            const pagePrevBtn = document.getElementById("sideSessNext"); // ▶▶
-            if (pageNextBtn) pageNextBtn.disabled = currentIndex >= b.end;
-            if (pagePrevBtn) pagePrevBtn.disabled = currentIndex <= b.start;
-
-            // Single-arrow row = session jump (left icon NEXT session, right icon PREV session)
-            const sessNextBtn = document.getElementById("sidePrev"); // ◀
-            const sessPrevBtn = document.getElementById("sideNext"); // ▶
+            // Session row: left = next session, right = prev session
+            const sessNextBtn = document.getElementById("sideSessPrev"); // ◀◀
+            const sessPrevBtn = document.getElementById("sideSessNext"); // ▶▶
             if (sessNextBtn) sessNextBtn.disabled = i < 0 || i >= order.length - 1;
             if (sessPrevBtn) sessPrevBtn.disabled = i <= 0;
+
+            // Page row: left = next page, right = prev page
+            const pageNextBtn = document.getElementById("sidePrev"); // ◀
+            const pagePrevBtn = document.getElementById("sideNext"); // ▶
+            if (pageNextBtn) pageNextBtn.disabled = currentIndex >= b.end;
+            if (pagePrevBtn) pagePrevBtn.disabled = currentIndex <= b.start;
         }
 
         function updateBackButton() {
@@ -1137,15 +1139,13 @@
                 fn();
             });
         }
-        // Function/label swap only (icons & positions stay):
-        //   ◀◀ NEXT = page next · ▶▶ PREV = page prev
-        //   ◀  NEXT = session next · ▶  PREV = session prev
-        // Keyboard ←→ [ ] and click zones are NOT changed.
-        bindSideButton("sideSessPrev", sessionNextPage);   // ◀◀ → next page
-        bindSideButton("sideSessNext", sessionPrevPage);   // ▶▶ → prev page
+        // Chinese R→L: left = NEXT, right = PREV (within each row). Icons fixed.
+        // Session row stays session; page row stays page. Keys/clicks unchanged.
+        bindSideButton("sideSessPrev", function () { jumpSession(1); });   // ◀◀ NEXT session
+        bindSideButton("sideSessNext", function () { jumpSession(-1); });  // ▶▶ PREV session
         bindSideButton("sideHome", goHome);                // first page of main/
-        bindSideButton("sidePrev", function () { jumpSession(1); });   // ◀ → next session
-        bindSideButton("sideNext", function () { jumpSession(-1); });  // ▶ → prev session
+        bindSideButton("sidePrev", sessionNextPage);       // ◀ NEXT page
+        bindSideButton("sideNext", sessionPrevPage);       // ▶ PREV page
         bindSideButton("sideEnd", goEnd);                  // last of current session
         bindSideButton("sideBack", goBackInHistory);       // history, unlimited
 
