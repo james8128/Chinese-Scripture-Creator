@@ -111,7 +111,8 @@
          *        [ END  ]
          *        (gap)
          *        [ BACK ]
-         * Bottom of screen: keyboard / click reminder (one line per action).
+         *        [ DASH ]  ← session disc + position %
+         * Bottom-left: keyboard / click reminder.
          * Hidden on phones so Android WebView is unchanged.
          */
         .side-rail {
@@ -128,13 +129,14 @@
                 --gap-back: 14px; /* space between End and Back */
                 display: grid;
                 grid-template-columns: var(--btn) var(--btn);
-                grid-template-rows: var(--btn) var(--btn) var(--btn) var(--gap-back) var(--btn);
+                grid-template-rows: var(--btn) var(--btn) var(--btn) var(--gap-back) var(--btn) auto;
                 grid-template-areas:
                     "home home"
                     "prev next"
                     "end  end"
                     "gap  gap"
-                    "back back";
+                    "back back"
+                    "dash dash";
                 gap: 8px;
                 position: fixed;
                 top: 50%;
@@ -190,6 +192,7 @@
                 min-height: var(--gap-back);
             }
             .side-rail .side-back { grid-area: back; }
+            .side-rail .side-dash { grid-area: dash; }
             .side-rail .side-nav:hover {
                 background: linear-gradient(
                     160deg,
@@ -264,6 +267,116 @@
                 letter-spacing: 0.12em;
                 opacity: 0.9;
                 pointer-events: none;
+            }
+
+            /* Position dashboard under Back: session chips + progress disc */
+            .side-dash {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 8px;
+                margin-top: 4px;
+                padding: 10px 8px 11px;
+                border-radius: 16px;
+                background: linear-gradient(
+                    165deg,
+                    rgba(28, 22, 16, 0.92) 0%,
+                    rgba(18, 14, 12, 0.95) 100%
+                );
+                border: 1px solid rgba(243, 234, 216, 0.22);
+                box-shadow:
+                    0 4px 14px rgba(0, 0, 0, 0.35),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+                pointer-events: none;
+                user-select: none;
+            }
+            .side-dash .sess-track {
+                display: flex;
+                width: 100%;
+                gap: 3px;
+            }
+            .side-dash .sess-chip {
+                flex: 1;
+                text-align: center;
+                font-size: 9px;
+                letter-spacing: 0.06em;
+                padding: 4px 0 5px;
+                border-radius: 8px;
+                color: rgba(243, 234, 216, 0.45);
+                background: rgba(255, 255, 255, 0.04);
+                border: 1px solid rgba(255, 255, 255, 0.06);
+                transition: color 0.2s, background 0.2s, border-color 0.2s, box-shadow 0.2s;
+            }
+            .side-dash .sess-chip.active {
+                color: #1a120a;
+                font-weight: 700;
+                background: linear-gradient(180deg, #e8c98a 0%, #c4a06a 100%);
+                border-color: rgba(255, 230, 170, 0.55);
+                box-shadow: 0 0 10px rgba(232, 201, 138, 0.35);
+            }
+            .side-dash .disc-wrap {
+                position: relative;
+                width: 92px;
+                height: 92px;
+            }
+            .side-dash .disc-wrap svg {
+                width: 100%;
+                height: 100%;
+                transform: rotate(-90deg);
+            }
+            .side-dash .disc-bg {
+                fill: none;
+                stroke: rgba(255, 255, 255, 0.08);
+                stroke-width: 7;
+            }
+            .side-dash .disc-fg {
+                fill: none;
+                stroke: url(#discGrad);
+                stroke-width: 7;
+                stroke-linecap: round;
+                stroke-dasharray: 251.2;
+                stroke-dashoffset: 251.2;
+                transition: stroke-dashoffset 0.35s ease;
+            }
+            .side-dash .disc-center {
+                position: absolute;
+                inset: 0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                color: #f5e6c8;
+                text-align: center;
+            }
+            .side-dash .disc-pct {
+                font-size: 18px;
+                font-weight: 700;
+                line-height: 1.1;
+                letter-spacing: 0.02em;
+                text-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+            }
+            .side-dash .disc-pct span {
+                font-size: 11px;
+                font-weight: 600;
+                opacity: 0.85;
+            }
+            .side-dash .disc-sub {
+                margin-top: 2px;
+                font-size: 9px;
+                letter-spacing: 0.08em;
+                color: rgba(245, 230, 200, 0.7);
+            }
+            .side-dash .dash-pages {
+                font-size: 11px;
+                font-weight: 600;
+                color: #f5e6c8;
+                letter-spacing: 0.04em;
+            }
+            .side-dash .dash-label {
+                font-size: 9px;
+                letter-spacing: 0.12em;
+                color: rgba(245, 230, 200, 0.55);
+                text-transform: uppercase;
             }
 
             /* Left of page image, near bottom (does not cover the page) */
@@ -361,6 +474,33 @@
             <span class="side-nav-icon">↩</span>
             <span class="side-nav-label">BACK</span>
         </button>
+        <!-- Session + progress dashboard (desktop) -->
+        <div class="side-dash" id="sideDash" aria-live="polite">
+            <div class="sess-track" title="Book section">
+                <span class="sess-chip" id="chipFront">前</span>
+                <span class="sess-chip" id="chipMain">正</span>
+                <span class="sess-chip" id="chipAfter">附</span>
+            </div>
+            <div class="disc-wrap">
+                <svg viewBox="0 0 100 100" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="discGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#e8c98a"/>
+                            <stop offset="55%" stop-color="#c4a06a"/>
+                            <stop offset="100%" stop-color="#8c7053"/>
+                        </linearGradient>
+                    </defs>
+                    <circle class="disc-bg" cx="50" cy="50" r="40"></circle>
+                    <circle class="disc-fg" id="discFg" cx="50" cy="50" r="40"></circle>
+                </svg>
+                <div class="disc-center">
+                    <div class="disc-pct" id="discPct">0<span>%</span></div>
+                    <div class="disc-sub" id="discSession">—</div>
+                </div>
+            </div>
+            <div class="dash-pages" id="dashPages">— / —</div>
+            <div class="dash-label" id="dashLabel">position</div>
+        </div>
     </div>
 
     <!-- Desktop only: bottom reminder (click zones + keys). Hidden on Android. -->
@@ -500,6 +640,72 @@
             btn.disabled = pageHistory.length === 0;
         }
 
+        /**
+         * Desktop dashboard under BACK:
+         * - which section (front / main / after)
+         * - progress disc = % through that section
+         * - page n / N within the section
+         */
+        function updateSessionDashboard() {
+            const dash = document.getElementById("sideDash");
+            if (!dash || images.length === 0) return;
+
+            const CIRC = 2 * Math.PI * 40; // r=40 in SVG
+            let section = "main";
+            let sectionName = "Main";
+            let local = 1;
+            let total = Math.max(1, mainCount);
+            let chipId = "chipMain";
+
+            if (currentIndex < mainStartIndex) {
+                section = "front";
+                sectionName = "Front";
+                local = currentIndex + 1;
+                total = Math.max(1, frontCount);
+                chipId = "chipFront";
+            } else if (currentIndex <= mainEndIndex) {
+                section = "main";
+                sectionName = "Main";
+                local = (currentIndex - mainStartIndex) + 1;
+                total = Math.max(1, mainCount);
+                chipId = "chipMain";
+            } else {
+                section = "after";
+                sectionName = "After";
+                local = currentIndex - mainEndIndex;
+                total = Math.max(1, afterCount);
+                chipId = "chipAfter";
+            }
+
+            const pct = Math.round((local / total) * 100);
+            const offset = CIRC * (1 - local / total);
+
+            ["chipFront", "chipMain", "chipAfter"].forEach(function (id) {
+                const el = document.getElementById(id);
+                if (el) el.classList.toggle("active", id === chipId);
+            });
+
+            const fg = document.getElementById("discFg");
+            if (fg) {
+                fg.style.strokeDasharray = String(CIRC);
+                fg.style.strokeDashoffset = String(offset);
+            }
+            const pctEl = document.getElementById("discPct");
+            if (pctEl) pctEl.innerHTML = pct + "<span>%</span>";
+            const sessEl = document.getElementById("discSession");
+            if (sessEl) sessEl.textContent = sectionName;
+            const pagesEl = document.getElementById("dashPages");
+            if (pagesEl) pagesEl.textContent = local + " / " + total;
+            const labelEl = document.getElementById("dashLabel");
+            if (labelEl) {
+                labelEl.textContent =
+                    section === "front" ? "front matter" :
+                    section === "after" ? "appendix" : "sutra body";
+            }
+
+            dash.dataset.section = section;
+        }
+
         /** Go to previous view in history (e.g. after accidental Home/End). */
         function goBackInHistory() {
             if (pageHistory.length === 0) return;
@@ -558,6 +764,7 @@
 
             document.getElementById('pageInfo').innerText = label;
             updateBackButton();
+            updateSessionDashboard();
         }
 
         function navbarNext() {
