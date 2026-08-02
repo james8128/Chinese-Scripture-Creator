@@ -123,24 +123,30 @@
         }
 
         @media (hover: hover) and (pointer: fine) and (min-width: 700px) {
+            /* Shared geometry: page aspect + left column (dashboard + hints) */
+            body.desktop-ui {
+                --page-aspect: 0.618;
+                --half-page: min(50vw, 50vh * var(--page-aspect));
+                --left-col-w: min(300px, calc(50% - var(--half-page) - 18px));
+                --left-col-right: calc(50% + var(--half-page) + 8px);
+            }
             .side-rail {
-                --page-aspect: 0.618; /* width/height ≈ 550/890 */
+                --page-aspect: 0.618;
                 --btn: min(76px, 9.5vw, 12vh);
-                --gap-back: 14px; /* space between End and Back */
+                --gap-back: 14px;
                 display: grid;
                 grid-template-columns: var(--btn) var(--btn);
-                grid-template-rows: var(--btn) var(--btn) var(--btn) var(--gap-back) var(--btn) auto;
+                grid-template-rows: var(--btn) var(--btn) var(--btn) var(--btn) var(--gap-back) var(--btn);
                 grid-template-areas:
+                    "sprev snext"
                     "home home"
                     "prev next"
                     "end  end"
                     "gap  gap"
-                    "back back"
-                    "dash dash";
+                    "back back";
                 gap: 8px;
                 position: fixed;
                 top: 50%;
-                /* Sit just to the right of the contained page image */
                 left: calc(50% + min(50vw, 50vh * var(--page-aspect)) + 8px);
                 right: auto;
                 transform: translateY(-50%);
@@ -151,7 +157,6 @@
                 box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
                 backdrop-filter: blur(6px);
             }
-            /* If the rail would go off-screen, pin it to the window edge */
             @supports (width: max(1px, 2px)) {
                 .side-rail {
                     left: min(
@@ -182,6 +187,8 @@
                 transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease, opacity 0.15s ease;
                 -webkit-tap-highlight-color: transparent;
             }
+            .side-rail .side-sprev { grid-area: sprev; }
+            .side-rail .side-snext { grid-area: snext; }
             .side-rail .side-home { grid-area: home; }
             .side-rail .side-prev { grid-area: prev; }
             .side-rail .side-next { grid-area: next; }
@@ -192,7 +199,7 @@
                 min-height: var(--gap-back);
             }
             .side-rail .side-back { grid-area: back; }
-            .side-rail .side-dash { grid-area: dash; }
+
             .side-rail .side-nav:hover {
                 background: linear-gradient(
                     160deg,
@@ -254,6 +261,22 @@
                     rgba(45, 45, 55, 0.95) 100%
                 );
             }
+            .side-rail .side-nav.side-sprev,
+            .side-rail .side-nav.side-snext {
+                background: linear-gradient(
+                    160deg,
+                    rgba(72, 58, 96, 0.72) 0%,
+                    rgba(36, 28, 48, 0.88) 100%
+                );
+            }
+            .side-rail .side-nav.side-sprev:hover:not(:disabled),
+            .side-rail .side-nav.side-snext:hover:not(:disabled) {
+                background: linear-gradient(
+                    160deg,
+                    rgba(100, 80, 130, 0.88) 0%,
+                    rgba(50, 38, 70, 0.95) 100%
+                );
+            }
             .side-rail .side-nav-icon {
                 font-size: clamp(20px, 2.4vw, 28px);
                 font-weight: 700;
@@ -269,14 +292,25 @@
                 pointer-events: none;
             }
 
-            /* Position dashboard under Back: session chips + progress disc */
+            /* Session dashboard: left of image, upper — same width/align as hints */
             .side-dash {
+                display: none;
+            }
+            body.desktop-ui .side-dash {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 gap: 8px;
-                margin-top: 4px;
-                padding: 10px 8px 11px;
+                position: fixed;
+                top: max(16px, 3.5vh);
+                right: var(--left-col-right);
+                left: auto;
+                width: var(--left-col-w);
+                max-width: var(--left-col-w);
+                box-sizing: border-box;
+                z-index: 85;
+                margin-top: 0;
+                padding: 12px 12px 13px;
                 border-radius: 16px;
                 background: linear-gradient(
                     165deg,
@@ -298,9 +332,9 @@
             .side-dash .sess-chip {
                 flex: 1;
                 text-align: center;
-                font-size: 9px;
+                font-size: 10px;
                 letter-spacing: 0.06em;
-                padding: 4px 0 5px;
+                padding: 5px 0 6px;
                 border-radius: 8px;
                 color: rgba(243, 234, 216, 0.45);
                 background: rgba(255, 255, 255, 0.04);
@@ -316,8 +350,8 @@
             }
             .side-dash .disc-wrap {
                 position: relative;
-                width: 92px;
-                height: 92px;
+                width: 100px;
+                height: 100px;
             }
             .side-dash .disc-wrap svg {
                 width: 100%;
@@ -349,7 +383,7 @@
                 text-align: center;
             }
             .side-dash .disc-pct {
-                font-size: 18px;
+                font-size: 20px;
                 font-weight: 700;
                 line-height: 1.1;
                 letter-spacing: 0.02em;
@@ -362,12 +396,12 @@
             }
             .side-dash .disc-sub {
                 margin-top: 2px;
-                font-size: 9px;
+                font-size: 10px;
                 letter-spacing: 0.08em;
                 color: rgba(245, 230, 200, 0.7);
             }
             .side-dash .dash-pages {
-                font-size: 11px;
+                font-size: 12px;
                 font-weight: 600;
                 color: #f5e6c8;
                 letter-spacing: 0.04em;
@@ -379,20 +413,18 @@
                 text-transform: uppercase;
             }
 
-            /* Left of page image, near bottom (does not cover the page) */
+            /* Left of page image, near bottom — same width/align as dashboard */
             .desktop-hints {
-                --page-aspect: 0.618;
-                --half-page: min(50vw, 50vh * var(--page-aspect));
                 display: block;
                 position: fixed;
                 bottom: max(16px, 4vh);
-                /* Right edge of this card sits just left of the image’s left edge */
-                right: calc(50% + var(--half-page) + 8px);
+                right: var(--left-col-right);
                 left: auto;
                 transform: none;
                 z-index: 85;
-                width: max-content;
-                max-width: min(300px, calc(50% - var(--half-page) - 18px));
+                width: var(--left-col-w);
+                max-width: var(--left-col-w);
+                box-sizing: border-box;
                 padding: 12px 14px 13px;
                 border-radius: 14px;
                 font-size: 12.5px;
@@ -451,21 +483,29 @@
         <img id="viewer" src="" alt="Scripture Page">
     </div>
 
-    <!-- Desktop only: D-pad grid + Back history (not used on Android) -->
+    <!-- Desktop only: session jump + page controls (not used on Android) -->
     <div class="side-rail" id="sideRail" aria-label="Page controls">
+        <button type="button" class="side-nav side-sprev" id="sideSessPrev" title="Previous session (front ← main ← after)" aria-label="Previous session">
+            <span class="side-nav-icon">◀◀</span>
+            <span class="side-nav-label">SEC</span>
+        </button>
+        <button type="button" class="side-nav side-snext" id="sideSessNext" title="Next session (front → main → after)" aria-label="Next session">
+            <span class="side-nav-icon">▶▶</span>
+            <span class="side-nav-label">SEC</span>
+        </button>
         <button type="button" class="side-nav side-home" id="sideHome" title="Main first page (↑ / Home)" aria-label="Home — first main page">
             <span class="side-nav-icon">🏠</span>
             <span class="side-nav-label">HOME</span>
         </button>
-        <button type="button" class="side-nav side-prev" id="sidePrev" title="Previous page (←)" aria-label="Previous page">
+        <button type="button" class="side-nav side-prev" id="sidePrev" title="Previous page in current session (←)" aria-label="Previous page">
             <span class="side-nav-icon">◀</span>
             <span class="side-nav-label">PREV</span>
         </button>
-        <button type="button" class="side-nav side-next" id="sideNext" title="Next page (→)" aria-label="Next page">
+        <button type="button" class="side-nav side-next" id="sideNext" title="Next page in current session (→)" aria-label="Next page">
             <span class="side-nav-icon">▶</span>
             <span class="side-nav-label">NEXT</span>
         </button>
-        <button type="button" class="side-nav side-end" id="sideEnd" title="Main last page (↓ / End)" aria-label="End — last main page">
+        <button type="button" class="side-nav side-end" id="sideEnd" title="Last page of current session (↓ / End)" aria-label="End — last page of current session">
             <span class="side-nav-icon">🏁</span>
             <span class="side-nav-label">END</span>
         </button>
@@ -474,44 +514,46 @@
             <span class="side-nav-icon">↩</span>
             <span class="side-nav-label">BACK</span>
         </button>
-        <!-- Session + progress dashboard (desktop) -->
-        <div class="side-dash" id="sideDash" aria-live="polite">
-            <div class="sess-track" title="Book section">
-                <span class="sess-chip" id="chipFront">前</span>
-                <span class="sess-chip" id="chipMain">正</span>
-                <span class="sess-chip" id="chipAfter">附</span>
-            </div>
-            <div class="disc-wrap">
-                <svg viewBox="0 0 100 100" aria-hidden="true">
-                    <defs>
-                        <linearGradient id="discGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#e8c98a"/>
-                            <stop offset="55%" stop-color="#c4a06a"/>
-                            <stop offset="100%" stop-color="#8c7053"/>
-                        </linearGradient>
-                    </defs>
-                    <circle class="disc-bg" cx="50" cy="50" r="40"></circle>
-                    <circle class="disc-fg" id="discFg" cx="50" cy="50" r="40"></circle>
-                </svg>
-                <div class="disc-center">
-                    <div class="disc-pct" id="discPct">0<span>%</span></div>
-                    <div class="disc-sub" id="discSession">—</div>
-                </div>
-            </div>
-            <div class="dash-pages" id="dashPages">— / —</div>
-            <div class="dash-label" id="dashLabel">position</div>
+    </div>
+
+    <!-- Desktop: session disc dashboard (left upper, aligned with hints) -->
+    <div class="side-dash" id="sideDash" aria-live="polite">
+        <div class="sess-track" title="Book section">
+            <span class="sess-chip" id="chipFront">前</span>
+            <span class="sess-chip" id="chipMain">正</span>
+            <span class="sess-chip" id="chipAfter">附</span>
         </div>
+        <div class="disc-wrap">
+            <svg viewBox="0 0 100 100" aria-hidden="true">
+                <defs>
+                    <linearGradient id="discGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#e8c98a"/>
+                        <stop offset="55%" stop-color="#c4a06a"/>
+                        <stop offset="100%" stop-color="#8c7053"/>
+                    </linearGradient>
+                </defs>
+                <circle class="disc-bg" cx="50" cy="50" r="40"></circle>
+                <circle class="disc-fg" id="discFg" cx="50" cy="50" r="40"></circle>
+            </svg>
+            <div class="disc-center">
+                <div class="disc-pct" id="discPct">0<span>%</span></div>
+                <div class="disc-sub" id="discSession">—</div>
+            </div>
+        </div>
+        <div class="dash-pages" id="dashPages">— / —</div>
+        <div class="dash-label" id="dashLabel">position</div>
     </div>
 
     <!-- Desktop only: bottom reminder (click zones + keys). Hidden on Android. -->
     <div class="desktop-hints" id="desktopHints" aria-hidden="true">
-        <span class="hint-title">Main session navigation</span>
-        <span class="hint-line">First Page: Center click / Home key or ↑</span>
-        <span class="hint-line">Previous Page: Left-bottom click / Left Arrow key (←)</span>
-        <span class="hint-line">Next Page: Right-bottom click / Right Arrow key (→)</span>
-        <span class="hint-line">Last Page: End key or ↓</span>
-        <span class="hint-line">Jump to Page: J key + page number</span>
-        <span class="hint-line">Back / Undo: Top-left click / B key (no section limit)</span>
+        <span class="hint-title">Session navigation</span>
+        <span class="hint-line">Session jump: SEC ◀◀ / ▶▶ buttons (or [ / ])</span>
+        <span class="hint-line">First of main: Center click / Home key or ↑</span>
+        <span class="hint-line">Previous page: Left-bottom click / ← (current session)</span>
+        <span class="hint-line">Next page: Right-bottom click / → (current session)</span>
+        <span class="hint-line">Last of session: End key or ↓</span>
+        <span class="hint-line">Jump in main: J key + page number</span>
+        <span class="hint-line">Back / Undo: Top-left click / B key (no limit)</span>
     </div>
 
     <div class="toast" id="toast">Tap Top-Left for Menu | Gesture / Tap to Navigate</div>
@@ -543,6 +585,10 @@
         let historyEnabled = false;   // off until first page is shown
         let historyFromBack = false;  // true while restoring via Back
         const PAGE_HISTORY_MAX = 80;
+
+        // Active reading session for PC nav (front | main | after)
+        let activeSession = "main";
+        let lastMainIndex = 0;        // resume position when returning to main
 
         function toRoman(num) {
             const map = { m: 1000, cm: 900, d: 500, cd: 400, c: 100, xc: 90, l: 50, xl: 40, x: 10, ix: 9, v: 5, iv: 4, i: 1 };
@@ -610,6 +656,8 @@
 
                 mainStartIndex = frontCount;
                 mainEndIndex = mainCount > 0 ? frontCount + mainCount - 1 : -1;
+                lastMainIndex = mainStartIndex;
+                activeSession = mainCount > 0 ? "main" : (frontCount > 0 ? "front" : "after");
 
                 if (mainCount > 0) {
                     showPage(mainStartIndex);
@@ -628,10 +676,91 @@
                 // Start recording history only after the opening page is shown
                 historyEnabled = true;
                 updateBackButton();
+                updateSessionJumpButtons();
             } catch (err) {
                 console.error("loadImages failed:", err);
                 document.getElementById("pageInfo").innerText = "Load error";
             }
+        }
+
+        function sessionOfIndex(i) {
+            if (i < mainStartIndex) return "front";
+            if (i <= mainEndIndex) return "main";
+            return "after";
+        }
+
+        function sessionHasPages(session) {
+            if (session === "front") return frontCount > 0;
+            if (session === "main") return mainCount > 0;
+            return afterCount > 0;
+        }
+
+        function getSessionBounds(session) {
+            if (session === "front") {
+                return { start: 0, end: Math.max(0, frontCount - 1) };
+            }
+            if (session === "main") {
+                return { start: mainStartIndex, end: Math.max(mainStartIndex, mainEndIndex) };
+            }
+            const start = mainEndIndex + 1;
+            return { start: start, end: Math.max(start, images.length - 1) };
+        }
+
+        function availableSessions() {
+            return ["front", "main", "after"].filter(sessionHasPages);
+        }
+
+        /** Prev/next page limited to the active session (PC). */
+        function sessionPrevPage() {
+            const b = getSessionBounds(activeSession);
+            if (currentIndex > b.start) showPage(currentIndex - 1);
+        }
+
+        function sessionNextPage() {
+            const b = getSessionBounds(activeSession);
+            if (currentIndex < b.end) showPage(currentIndex + 1);
+        }
+
+        /** Jump to previous/next session; front/after → first page; main → last position. */
+        function jumpSession(dir) {
+            const order = availableSessions();
+            if (order.length === 0) return;
+            let i = order.indexOf(activeSession);
+            if (i < 0) i = 0;
+            const ni = i + dir;
+            if (ni < 0 || ni >= order.length) return;
+            goToSession(order[ni]);
+        }
+
+        function goToSession(session) {
+            if (!sessionHasPages(session)) return;
+            // Remember main position before leaving main
+            if (
+                currentIndex >= mainStartIndex &&
+                currentIndex <= mainEndIndex
+            ) {
+                lastMainIndex = currentIndex;
+            }
+            activeSession = session;
+            if (session === "main") {
+                let idx = lastMainIndex;
+                if (idx < mainStartIndex || idx > mainEndIndex) {
+                    idx = mainStartIndex;
+                }
+                showPage(idx);
+            } else {
+                showPage(getSessionBounds(session).start);
+            }
+            updateSessionJumpButtons();
+        }
+
+        function updateSessionJumpButtons() {
+            const order = availableSessions();
+            const i = order.indexOf(activeSession);
+            const prevBtn = document.getElementById("sideSessPrev");
+            const nextBtn = document.getElementById("sideSessNext");
+            if (prevBtn) prevBtn.disabled = i <= 0;
+            if (nextBtn) nextBtn.disabled = i < 0 || i >= order.length - 1;
         }
 
         function updateBackButton() {
@@ -737,10 +866,15 @@
             currentIndex = index;
             document.getElementById('viewer').src = images[currentIndex];
 
+            // Sync active session to the page we landed on (incl. Back undo)
+            activeSession = sessionOfIndex(currentIndex);
+            if (activeSession === "main") {
+                lastMainIndex = currentIndex;
+            }
+
             let label = "";
 
-            if (currentIndex === images.length - 1) {
-                // Last image of the whole book
+            if (currentIndex === images.length - 1 && afterCount > 0 && currentIndex > mainEndIndex) {
                 label = "完";
             } else if (currentIndex < mainStartIndex) {
                 // Front matter: Cover + roman numerals for the rest
@@ -765,8 +899,10 @@
             document.getElementById('pageInfo').innerText = label;
             updateBackButton();
             updateSessionDashboard();
+            updateSessionJumpButtons();
         }
 
+        // Navbar (Android menu): whole book — unchanged behaviour for phone menu
         function navbarNext() {
             if (currentIndex < images.length - 1) {
                 showPage(currentIndex + 1);
@@ -779,7 +915,7 @@
             }
         }
 
-        // Gestures stay inside main content only
+        // Android gestures: stay inside main content only (untouched for phone)
         function gestureNext() {
             if (currentIndex < mainEndIndex) {
                 showPage(currentIndex + 1);
@@ -799,16 +935,20 @@
             if (isNaN(n)) return;
             if (n < 1) n = 1;
             if (n > mainCount) n = mainCount;
+            activeSession = "main";
             showPage(mainStartIndex + (n - 1));
         }
 
-        // Home / End buttons → first / last page of main content
+        // Home → always first page of main session
         function goHome() {
+            activeSession = "main";
             goToMainPage(1);
         }
 
+        // End → last page of the *current* active session
         function goEnd() {
-            goToMainPage(mainCount);
+            const b = getSessionBounds(activeSession);
+            showPage(b.end);
         }
 
         function jumpPrompt() {
@@ -931,9 +1071,9 @@
             } else if (isLeft && isTop) {
                 goBackInHistory();
             } else if (isLeft && isBottom) {
-                gesturePrev();
+                sessionPrevPage();
             } else if (isRight && isBottom) {
-                gestureNext();
+                sessionNextPage();
             }
         }
 
@@ -953,13 +1093,15 @@
                 fn();
             });
         }
-        bindSideButton("sideHome", goHome);           // first page of main/
-        bindSideButton("sidePrev", gesturePrev);      // previous main page
-        bindSideButton("sideNext", gestureNext);      // next main page
-        bindSideButton("sideEnd", goEnd);             // last page of main/
-        bindSideButton("sideBack", goBackInHistory);  // undo path (history, unlimited)
+        bindSideButton("sideSessPrev", function () { jumpSession(-1); });
+        bindSideButton("sideSessNext", function () { jumpSession(1); });
+        bindSideButton("sideHome", goHome);              // first page of main/
+        bindSideButton("sidePrev", sessionPrevPage);     // prev in current session
+        bindSideButton("sideNext", sessionNextPage);     // next in current session
+        bindSideButton("sideEnd", goEnd);                // last of current session
+        bindSideButton("sideBack", goBackInHistory);     // history, unlimited
 
-        // Keyboard (PC): main session for turns/home/end; Back unlimited
+        // Keyboard (PC): session-scoped turns; Home = main first; Back unlimited
         document.addEventListener("keydown", function (e) {
             const tag = (e.target && e.target.tagName) || "";
             if (tag === "INPUT" || tag === "TEXTAREA") return;
@@ -967,11 +1109,11 @@
             switch (e.key) {
                 case "ArrowLeft":
                     e.preventDefault();
-                    gesturePrev();
+                    sessionPrevPage();
                     break;
                 case "ArrowRight":
                     e.preventDefault();
-                    gestureNext();
+                    sessionNextPage();
                     break;
                 case "ArrowUp":
                 case "Home":
@@ -982,6 +1124,14 @@
                 case "End":
                     e.preventDefault();
                     goEnd();
+                    break;
+                case "[":
+                    e.preventDefault();
+                    jumpSession(-1);
+                    break;
+                case "]":
+                    e.preventDefault();
+                    jumpSession(1);
                     break;
                 case "b":
                 case "B":
