@@ -558,10 +558,10 @@
     <div class="desktop-hints" id="desktopHints" aria-hidden="true">
         <span class="hint-title">Session navigation</span>
         <span class="hint-line">Session jump: ◀◀ / ▶▶</span>
-        <span class="hint-line">First of main: Center click / Home key or ↑ key</span>
-        <span class="hint-line">Previous page: ▶ / Left-bottom click / Right-upper click / ← key</span>
-        <span class="hint-line">Next page: ◀ / Right-bottom click / → key</span>
-        <span class="hint-line">Last page: 🏁 / End key or ↓ key</span>
+        <span class="hint-line">First of main: Center click / Home key</span>
+        <span class="hint-line">Previous page: ▶ / Left-bottom click / Right-upper click / ↑ key</span>
+        <span class="hint-line">Next page: ◀ / Right-bottom click / ↓ key</span>
+        <span class="hint-line">Last page: 🏁 / End key</span>
         <span class="hint-line">Jump to page: J key + page number</span>
         <span class="hint-line">Back / Undo: Top-left click / B key</span>
     </div>
@@ -1159,23 +1159,25 @@
             if (tag === "INPUT" || tag === "TEXTAREA") return;
 
             switch (e.key) {
-                case "ArrowLeft":
+                case "ArrowUp":
                     e.preventDefault();
                     sessionPrevPage();
                     break;
-                case "ArrowRight":
+                case "ArrowDown":
                     e.preventDefault();
                     sessionNextPage();
                     break;
-                case "ArrowUp":
                 case "Home":
                     e.preventDefault();
                     goHome();
                     break;
-                case "ArrowDown":
                 case "End":
                     e.preventDefault();
                     goEnd();
+                    break;
+                case "ArrowLeft":
+                case "ArrowRight":
+                    // Unused for paging (Chinese R→L uses ↑ prev / ↓ next)
                     break;
                 case "[":
                     e.preventDefault();
