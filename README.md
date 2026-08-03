@@ -65,6 +65,9 @@ This project is **not** affiliated with 善書圖書館 / taolibrary.com. If you
 ├── create_pages.py          # page generator (edit colors / margins here)
 ├── create_pages.cmd         # Windows helper to run the generator
 ├── T2897_佛說天地八陽神咒經.txt   # source text (title, translator, body)
+├── learn-by-listening/      # optional Cantonese TTS audio (not in APK/HTML)
+│   ├── T2897_cantonese-reading.zh-HK.ogg
+│   └── T2897_google-tts-source.zh-HK.txt
 ├── font/                    # CJK fonts for generation
 ├── reference/               # sample pages / notes (optional)
 ├── apk-sample-output/       # sample Android APK (unsigned)
@@ -76,6 +79,36 @@ This project is **not** affiliated with 善書圖書館 / taolibrary.com. If you
     ├── main/                # sutra body    (page_001.png …)  ← generator output
     └── after/               # appendix      (page_001.jpg …)
 ```
+
+---
+
+## Learn by listening (optional Cantonese audio)
+
+Folder: **`learn-by-listening/`**
+
+This optional package is for anyone who wants to **hear** the sutra — learners, elders, people with low vision, or anyone who prefers listening while reading the page images. It is meant to **lower barriers** so more people can study and understand freely; it is **not** wired into the APK or `index.html`. Open the audio file in any player you like (phone, PC, browser, etc.).
+
+| File | Role |
+|------|------|
+| [`T2897_cantonese-reading.zh-HK.ogg`](learn-by-listening/T2897_cantonese-reading.zh-HK.ogg) | Full reading voice (Cantonese, Google TTS). Play separately; **not** controlled by the app or web viewer. |
+| [`T2897_google-tts-source.zh-HK.txt`](learn-by-listening/T2897_google-tts-source.zh-HK.txt) | Text prepared for **Google TTS Cantonese (zh-HK)** generation. Based on the root `T2897_佛說天地八陽神咒經.txt`, with **manual character-level adjustments** so the engine reads more naturally. Use this file if you regenerate or adapt the audio. |
+
+### How this text differs from the page-generation source
+
+- **Root** `T2897_佛說天地八陽神咒經.txt` — working text for **`create_pages.py`** / printed pages. Prefer CBETA T2897 for canonical wording.
+- **TTS source** — practical speech script only (pronunciation-friendly edits). It is **not** a second critical edition of the canon.
+
+### Supplementary Bodhisattva names (voice version only)
+
+In the spoken / TTS script, **7 of the 8 Bodhisattvas** include short bilingual notes of the form  
+`(Bhadrapāla，賢護)` (Sanskrit romanization + Chinese).
+
+These are **personal study aids** only — extra reference so listeners can link traditional names with common Sanskrit / Chinese labels. They are **not** an academic amendment of the Taishō / CBETA text, and they are **not** part of the generated page images unless you deliberately add them elsewhere.
+
+### What is *not* included
+
+- The APK and HTML reader **do not** embed or play this audio.
+- You do **not** need the audio folder to build pages or to use the reader.
 
 ---
 
@@ -134,8 +167,8 @@ The **`release/`** package — **excluding** the PC-only helper files `server.py
 
 | Platform | Status |
 |----------|--------|
-| **Android** (sample APK / WebView) | **Fully functional** — original touch gestures and menu unchanged. |
-| **PC browser** (`server.py`) | **Main-session** click/keys: center/`Home`/`↑` first page; left-bottom/`←` prev; right-bottom/`→` next; `End`/`↓` last; `J` jump; **Back** (`B` / top-left click) undoes history with no section limit. Bottom on-screen reminder lists each action. Side grid mirrors Home/Prev/Next/End/Back. (Android top-left still opens the menu.) |
+| **Android** (sample APK / WebView) | Touch gestures + menu; **top-right tap = Back / undo**; top-left = menu. Desktop side rail / hints / dashboard are hidden and do not intercept taps. |
+| **PC browser** (`server.py`) | Desktop chrome (side buttons, progress dash, hints) when pointer is fine + wide enough. Session-scoped page turns; center / Home = main first page; **Back** = `B` / **top-right** click (history, unlimited). |
 
 ---
 
@@ -180,6 +213,7 @@ Each folder is numbered from `page_001`. Counts are **auto-detected**; you can a
 | **Home / End / Jump / most gestures** | **Main** section only |
 | **Page labels** | Cover / Roman (front), `1 / N` (main), `附 n` (after), `完` (last page) |
 | **Top-left tap** | Show / hide menu |
+| **Top-right tap** | Back / undo (page history) |
 
 ---
 
@@ -188,6 +222,7 @@ Each folder is numbered from `page_001`. Counts are **auto-detected**; you can a
 - Working file: `T2897_佛說天地八陽神咒經.txt` (UTF-8), based on **[CBETA Online T2897](https://cbetaonline.dila.edu.tw/zh/T2897)**.
 - **Variants:** different printings and traditions of 《佛說天地八陽神咒經》 can differ slightly (wording, punctuation, chaptering). This repo’s file is one practical working copy only. For authoritative text and notes on variants, consult **CBETA T2897**, not this generator alone.
 - **Customization:** replace or edit the `.txt` file with your preferred wording, then re-run `create_pages.py` to build your own page set — that is the main intent of the project.
+- **Optional TTS script:** `learn-by-listening/T2897_google-tts-source.zh-HK.txt` is derived from the working file for Cantonese speech only (see [Learn by listening](#learn-by-listening-optional-cantonese-audio)).
 
 ---
 
@@ -220,6 +255,7 @@ Ignored locally (see `.gitignore`): `__pycache__/`, old `pages/` output, experim
 - **Scripture text:** 《佛說天地八陽神咒經》 **T2897**, via **[CBETA Online](https://cbetaonline.dila.edu.tw/zh/T2897)** (Chinese Buddhist Electronic Text Association). Please credit CBETA when referring to or redistributing the textual content.
 - **Front / after page images:** downloaded from **[善書圖書館 (Tao Library)](https://simple.taolibrary.com/category/category50/c50074.htm)** on taolibrary.com — not generated by `create_pages.py`. Please credit 善書圖書館 when redistributing those images.
 - **Main page images:** generated by this repository from the working text file.
+- **Optional Cantonese reading audio:** Google TTS–based OGG in `learn-by-listening/` (open separately; not part of the APK/HTML controls). Supplementary Bodhisattva name glosses in that track are for personal reference only.
 - **Layout generator & web reader:** this repository (Chinese Scripture Creator)
 - **Default typeface:** Noto Serif TC  
 

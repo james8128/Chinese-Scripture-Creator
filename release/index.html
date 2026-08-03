@@ -105,21 +105,18 @@
         }
 
         /*
-         * Desktop-only D-pad grid, snug to the right edge of the page image:
-         *        [ HOME ]
-         *   [PREV]    [NEXT]
-         *        [ END  ]
-         *        (gap)
-         *        [ BACK ]
-         *        [ DASH ]  ← session disc + position %
-         * Bottom-left: keyboard / click reminder.
-         * Hidden on phones so Android WebView is unchanged.
+         * Desktop-only chrome (side buttons, title, progress dash, hints).
+         * Always hidden by default so Android / touch WebView never shows them
+         * and never lets them steal layout space or taps.
+         * Shown only when: fine pointer + hover + wide enough + body.desktop-ui.
          */
-        .side-rail {
-            display: none;
-        }
-        .desktop-hints {
-            display: none;
+        .side-rail,
+        .desktop-hints,
+        .desktop-title,
+        .side-dash {
+            display: none !important;
+            pointer-events: none !important;
+            visibility: hidden;
         }
 
         @media (hover: hover) and (pointer: fine) and (min-width: 700px) {
@@ -130,11 +127,13 @@
                 --left-col-w: min(300px, calc(50% - var(--half-page) - 18px));
                 --left-col-right: calc(50% + var(--half-page) + 8px);
             }
-            .side-rail {
+            body.desktop-ui .side-rail {
                 --page-aspect: 0.618;
                 --btn: min(76px, 9.5vw, 12vh);
                 --gap-back: 14px;
-                display: grid;
+                display: grid !important;
+                pointer-events: auto !important;
+                visibility: visible;
                 grid-template-columns: var(--btn) var(--btn);
                 grid-template-rows: 36px var(--btn) var(--btn) var(--btn) var(--btn) var(--gap-back) var(--btn);
                 grid-template-areas:
@@ -218,7 +217,7 @@
                 box-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
             }
             @supports (width: max(1px, 2px)) {
-                .side-rail {
+                body.desktop-ui .side-rail {
                     left: min(
                         calc(50% + min(50vw, 50vh * var(--page-aspect)) + 8px),
                         calc(100vw - (2 * var(--btn) + 36px))
@@ -353,11 +352,10 @@
             }
 
             /* Desktop title: above progress block, same left column width */
-            .desktop-title {
-                display: none;
-            }
             body.desktop-ui .desktop-title {
-                display: block;
+                display: block !important;
+                visibility: visible;
+                pointer-events: none !important;
                 position: fixed;
                 top: max(14px, 2.8vh);
                 right: var(--left-col-right);
@@ -369,7 +367,6 @@
                 padding: 12px 14px 13px;
                 border-radius: 14px;
                 text-align: center;
-                pointer-events: none;
                 user-select: none;
                 font-size: clamp(15px, 1.55vw, 18px);
                 font-weight: 700;
@@ -402,11 +399,10 @@
             }
 
             /* Session dashboard: left of image, under title — same width/align as hints */
-            .side-dash {
-                display: none;
-            }
             body.desktop-ui .side-dash {
-                display: flex;
+                display: flex !important;
+                visibility: visible;
+                pointer-events: none !important;
                 flex-direction: column;
                 align-items: center;
                 gap: 8px;
@@ -431,7 +427,6 @@
                 box-shadow:
                     0 4px 14px rgba(0, 0, 0, 0.35),
                     inset 0 1px 0 rgba(255, 255, 255, 0.05);
-                pointer-events: none;
                 user-select: none;
             }
             .side-dash .sess-track {
@@ -529,8 +524,10 @@
             }
 
             /* Left of page image, near bottom — same width/align as dashboard */
-            .desktop-hints {
-                display: block;
+            body.desktop-ui .desktop-hints {
+                display: block !important;
+                visibility: visible;
+                pointer-events: none !important;
                 position: fixed;
                 bottom: max(16px, 4vh);
                 right: var(--left-col-right);
@@ -546,7 +543,6 @@
                 line-height: 1.5;
                 letter-spacing: 0.01em;
                 text-align: left;
-                pointer-events: none;
                 user-select: none;
                 color: #f3ead8;
                 background: rgba(22, 18, 14, 0.93);
@@ -598,8 +594,8 @@
         <img id="viewer" src="" alt="Scripture Page">
     </div>
 
-    <!-- Desktop only: session jump + page controls (not used on Android) -->
-    <div class="side-rail" id="sideRail" aria-label="Page controls">
+    <!-- Desktop only: session jump + page controls (hidden on Android) -->
+    <div class="side-rail" id="sideRail" aria-label="Page controls" aria-hidden="true" hidden>
         <div class="page-slider-wrap">
             <span class="page-slider-label">ALL PAGES · 左 ← 右</span>
             <input type="range" class="page-slider" id="pageSlider" min="0" max="0" value="0" step="1" title="Drag across all pages (right = start, left = end)" aria-label="Page position across all sessions">
@@ -631,17 +627,17 @@
             <span class="side-nav-label">END</span>
         </button>
         <div class="side-gap" aria-hidden="true"></div>
-        <button type="button" class="side-nav side-back" id="sideBack" title="Back to previous view (B) · also top-left click" aria-label="Back in page history" disabled>
+        <button type="button" class="side-nav side-back" id="sideBack" title="Back to previous view (B) · also top-right click" aria-label="Back in page history" disabled>
             <span class="side-nav-icon">↩</span>
             <span class="side-nav-label">BACK</span>
         </button>
     </div>
 
     <!-- Desktop: title above progress (same left column as dash + hints) -->
-    <div class="desktop-title" id="desktopTitle">佛說天地八陽神咒經</div>
+    <div class="desktop-title" id="desktopTitle" aria-hidden="true" hidden>佛說天地八陽神咒經</div>
 
     <!-- Desktop: session disc dashboard (left upper, under title) -->
-    <div class="side-dash" id="sideDash" aria-live="polite">
+    <div class="side-dash" id="sideDash" aria-live="polite" aria-hidden="true" hidden>
         <!-- Visual order R→L (Chinese): 完 附 正 前 面 — ids unchanged for logic -->
         <div class="sess-track" title="Book section (5 sessions)">
             <span class="sess-chip" id="chipLast">完</span>
@@ -672,18 +668,18 @@
     </div>
 
     <!-- Desktop only: bottom reminder (click zones + keys). Hidden on Android. -->
-    <div class="desktop-hints" id="desktopHints" aria-hidden="true">
+    <div class="desktop-hints" id="desktopHints" aria-hidden="true" hidden>
         <span class="hint-title">Session navigation</span>
         <span class="hint-line">Session jump: ◀◀ / ▶▶</span>
         <span class="hint-line">1st page of Main session: Center click / Home key</span>
-        <span class="hint-line">Previous page: ▶ / Left-bottom click / Right-upper click / ↑ key</span>
+        <span class="hint-line">Previous page: ▶ / Left-bottom click / ↑ key</span>
         <span class="hint-line">Next page: ◀ / Right-bottom click / ↓ key</span>
         <span class="hint-line">Last page: 🏁 / End key</span>
         <span class="hint-line">Jump to page: J key + page number</span>
-        <span class="hint-line">Back / Undo: Top-left click / B key</span>
+        <span class="hint-line">Back / Undo: Top-right click / B key</span>
     </div>
 
-    <div class="toast" id="toast">Tap Top-Left for Menu | Gesture / Tap to Navigate</div>
+    <div class="toast" id="toast">Top-Left: Menu | Top-Right: Back | Gesture / Tap to Navigate</div>
 
     <script>
         // Three sections, each folder renumbered from page_001
@@ -1214,7 +1210,7 @@
             nav.classList.toggle('visible');
         }
 
-        /* --- Touch & Gesture Event Handlers (Android — do not change) --- */
+        /* --- Touch & Gesture Event Handlers (Android) --- */
         const touchArea = document.getElementById('touchArea');
         let touchStartX = 0;
         let touchStartY = 0;
@@ -1250,6 +1246,14 @@
             }
         }
 
+        /**
+         * Android tap zones:
+         * - Center → first main page (Home)
+         * - Top-left → menu
+         * - Top-right → Back / undo (page history)
+         * - Bottom-left → previous main page
+         * - Bottom-right → next main page
+         */
         function handleTapZone(touch) {
             const width = window.innerWidth;
             const height = window.innerHeight;
@@ -1267,35 +1271,41 @@
                 goHome();
             } else if (isLeft && isTop) {
                 toggleMenu();
+            } else if (isRight && isTop) {
+                goBackInHistory();
             } else if (isRight && isBottom) {
                 gestureNext();
-            } else if ((isRight && isTop) || (isLeft && isBottom)) {
+            } else if (isLeft && isBottom) {
                 gesturePrev();
             }
         }
 
         /* ===================================================================
          * Desktop / PC input (mouse + keyboard + side buttons)
-         * Added on top of touch; Android touch path above stays as-is.
-         * Side buttons are CSS-hidden on coarse/touch-first devices.
+         * Only active when isDesktopUI() is true. Android uses touch only:
+         * handleTapZone / gestures — mouse click zones & side rail never bind.
          * =================================================================== */
         let ignoreMouseClickUntil = 0;
 
-        function isDesktopPointer() {
+        /** Matches CSS gate: fine pointer + hover + wide enough for chrome. */
+        function isDesktopUI() {
             try {
-                return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+                return window.matchMedia(
+                    "(hover: hover) and (pointer: fine) and (min-width: 700px)"
+                ).matches;
             } catch (e) {
-                return true;
+                return false;
             }
         }
 
         /**
-         * Mouse click zones (PC only) — main session only, except Back.
+         * Mouse click zones (PC only) — session-scoped page turns, except Back.
          * - Center → first main page
-         * - Left-bottom → previous main page
-         * - Right-bottom → next main page
-         * - Top-left → Back / undo (history; no section limit)
-         * Android touch still uses handleTapZone — unchanged.
+         * - Left-bottom → previous page (active session)
+         * - Right-bottom → next page (active session)
+         * - Top-left → no action
+         * - Top-right → Back / undo (history; no section limit)
+         * Android touch: handleTapZone only (no mouse path).
          */
         function handleMouseClickZone(clientX, clientY) {
             const width = window.innerWidth;
@@ -1314,99 +1324,113 @@
             if (isCenter) {
                 goHome();
             } else if (isLeft && isTop) {
-                goBackInHistory();
+                // intentionally no action
             } else if (isLeft && isBottom) {
                 sessionPrevPage();
             } else if (isRight && isTop) {
-                // Same as Android: right-upper = previous page
-                sessionPrevPage();
+                goBackInHistory();
             } else if (isRight && isBottom) {
                 sessionNextPage();
             }
         }
 
-        touchArea.addEventListener("click", function (e) {
-            // Skip ghost clicks after a real touch gesture
-            if (Date.now() < ignoreMouseClickUntil) return;
-            handleMouseClickZone(e.clientX, e.clientY);
-        }, false);
+        function enableDesktopChrome() {
+            document.body.classList.add("desktop-ui");
 
-        // Right-side rail (desktop only)
-        function bindSideButton(id, fn) {
-            const el = document.getElementById(id);
-            if (!el) return;
-            el.addEventListener("click", function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                fn();
+            // Reveal desktop-only nodes (hidden on mobile so they never take space / taps)
+            const desktopIds = {
+                sideRail: false,
+                desktopTitle: true,   // decorative
+                sideDash: false,
+                desktopHints: true    // decorative
+            };
+            Object.keys(desktopIds).forEach(function (id) {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.hidden = false;
+                el.setAttribute("aria-hidden", desktopIds[id] ? "true" : "false");
+            });
+
+            const toast = document.getElementById("toast");
+            if (toast) toast.style.display = "none";
+
+            touchArea.addEventListener("click", function (e) {
+                // Skip ghost clicks after a real touch gesture; desktop mouse only
+                if (!isDesktopUI()) return;
+                if (Date.now() < ignoreMouseClickUntil) return;
+                handleMouseClickZone(e.clientX, e.clientY);
+            }, false);
+
+            function bindSideButton(id, fn) {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    fn();
+                });
+            }
+            // Chinese R→L: left = NEXT, right = PREV (within each row). Icons fixed.
+            bindSideButton("sideSessPrev", function () { jumpSession(1); });
+            bindSideButton("sideSessNext", function () { jumpSession(-1); });
+            bindSideButton("sideHome", goHome);
+            bindSideButton("sidePrev", sessionNextPage);
+            bindSideButton("sideNext", sessionPrevPage);
+            bindSideButton("sideEnd", goEnd);
+            bindSideButton("sideBack", goBackInHistory);
+
+            document.addEventListener("keydown", function (e) {
+                if (!isDesktopUI()) return;
+                const tag = (e.target && e.target.tagName) || "";
+                if (tag === "INPUT" || tag === "TEXTAREA") return;
+
+                switch (e.key) {
+                    case "ArrowUp":
+                        e.preventDefault();
+                        sessionPrevPage();
+                        break;
+                    case "ArrowDown":
+                        e.preventDefault();
+                        sessionNextPage();
+                        break;
+                    case "Home":
+                        e.preventDefault();
+                        goHome();
+                        break;
+                    case "End":
+                        e.preventDefault();
+                        goEnd();
+                        break;
+                    case "ArrowLeft":
+                    case "ArrowRight":
+                        break;
+                    case "[":
+                        e.preventDefault();
+                        jumpSession(-1);
+                        break;
+                    case "]":
+                        e.preventDefault();
+                        jumpSession(1);
+                        break;
+                    case "b":
+                    case "B":
+                        e.preventDefault();
+                        goBackInHistory();
+                        break;
+                    case "j":
+                    case "J":
+                        e.preventDefault();
+                        jumpPrompt();
+                        break;
+                    default:
+                        break;
+                }
             });
         }
-        // Chinese R→L: left = NEXT, right = PREV (within each row). Icons fixed.
-        // Session row stays session; page row stays page. Keys/clicks unchanged.
-        bindSideButton("sideSessPrev", function () { jumpSession(1); });   // ◀◀ NEXT session
-        bindSideButton("sideSessNext", function () { jumpSession(-1); });  // ▶▶ PREV session
-        bindSideButton("sideHome", goHome);                // first page of main/
-        bindSideButton("sidePrev", sessionNextPage);       // ◀ NEXT page
-        bindSideButton("sideNext", sessionPrevPage);       // ▶ PREV page
-        bindSideButton("sideEnd", goEnd);                  // last of current session
-        bindSideButton("sideBack", goBackInHistory);       // history, unlimited
 
-        // Keyboard (PC): session-scoped turns; Home = main first; Back unlimited
-        document.addEventListener("keydown", function (e) {
-            const tag = (e.target && e.target.tagName) || "";
-            if (tag === "INPUT" || tag === "TEXTAREA") return;
-
-            switch (e.key) {
-                case "ArrowUp":
-                    e.preventDefault();
-                    sessionPrevPage();
-                    break;
-                case "ArrowDown":
-                    e.preventDefault();
-                    sessionNextPage();
-                    break;
-                case "Home":
-                    e.preventDefault();
-                    goHome();
-                    break;
-                case "End":
-                    e.preventDefault();
-                    goEnd();
-                    break;
-                case "ArrowLeft":
-                case "ArrowRight":
-                    // Unused for paging (Chinese R→L uses ↑ prev / ↓ next)
-                    break;
-                case "[":
-                    e.preventDefault();
-                    jumpSession(-1);
-                    break;
-                case "]":
-                    e.preventDefault();
-                    jumpSession(1);
-                    break;
-                case "b":
-                case "B":
-                    e.preventDefault();
-                    goBackInHistory();
-                    break;
-                case "j":
-                case "J":
-                    e.preventDefault();
-                    jumpPrompt();
-                    break;
-                default:
-                    break;
-            }
-        });
-
-        // Desktop: show bottom hints; keep Android toast as-is
-        if (isDesktopPointer()) {
-            document.body.classList.add("desktop-ui");
-            const toast = document.getElementById("toast");
-            if (toast) {
-                toast.style.display = "none";
-            }
+        // Desktop only — Android never enters this path
+        if (isDesktopUI()) {
+            enableDesktopChrome();
         }
 
         setTimeout(() => {
