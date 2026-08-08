@@ -71,7 +71,7 @@ This project is **not** affiliated with 善書圖書館 / taolibrary.com. If you
 ├── font/                    # CJK fonts for generation
 ├── reference/               # sample pages / notes (optional)
 ├── apk-sample-output/       # sample Android APK (unsigned)
-│   └── 天地八陽經.apk
+│   └── 八陽神咒經.apk
 └── release/                 # reader package (HTML + page images)
     ├── index.html           # viewer UI + navigation
     ├── server.py / server.cmd   # PC preview only (not needed for APK)
@@ -159,7 +159,7 @@ The **`release/`** package — **excluding** the PC-only helper files `server.py
 |------|--------|
 | **What to package** | `release/index.html` + `front/` + `main/` + `after/` |
 | **Not required for APK** | `server.py`, `server.cmd` (those are for PC browser preview only) |
-| **Sample APK** | [`apk-sample-output/天地八陽經.apk`](apk-sample-output/天地八陽經.apk) |
+| **Sample APK** | [`apk-sample-output/八陽神咒經.apk`](apk-sample-output/八陽神咒經.apk) |
 | **App display name** | **天地八陽經** — shorter than 佛說天地八陽神咒經 so it fits better on the Android home screen / app list |
 | **Signing** | The sample APK is **unsigned**. For sideloading or store release you should sign it with your own key (or use a builder that signs for you). |
 

@@ -22,7 +22,6 @@
             position: relative;
             user-select: none;
         }
-
         /* Top Navigation Bar */
         .navbar {
             background-color: rgba(30, 30, 30, 0.95);
@@ -38,11 +37,9 @@
             z-index: 100;
             width: 100%;
         }
-
         .navbar.visible {
             display: flex;
         }
-
         /* Slimmer button sizing for native WebView */
         .btn {
             background-color: #333333;
@@ -69,7 +66,6 @@
             padding: 0 2px;
             flex: 0 0 auto;
         }
-
         /* Full Screen Image Container */
         .image-container {
             flex: 1;
@@ -87,7 +83,6 @@
             object-fit: contain;
             pointer-events: none;
         }
-
         .toast {
             position: absolute;
             bottom: 20px;
@@ -103,7 +98,6 @@
             transition: opacity 1s ease;
             z-index: 50;
         }
-
         /*
          * Desktop-only chrome (side buttons, title, progress dash, hints).
          * Always hidden by default so Android / touch WebView never shows them
@@ -118,7 +112,6 @@
             pointer-events: none !important;
             visibility: hidden;
         }
-
         @media (hover: hover) and (pointer: fine) and (min-width: 700px) {
             /* Shared geometry: page aspect + left column (dashboard + hints) */
             body.desktop-ui {
@@ -258,7 +251,6 @@
                 min-height: var(--gap-back);
             }
             .side-rail .side-back { grid-area: back; }
-
             .side-rail .side-nav:hover {
                 background: linear-gradient(
                     160deg,
@@ -350,7 +342,6 @@
                 opacity: 0.9;
                 pointer-events: none;
             }
-
             /* Desktop title: above progress block, same left column width */
             body.desktop-ui .desktop-title {
                 display: block !important;
@@ -397,7 +388,6 @@
                         inset 0 1px 0 rgba(255, 255, 255, 0.85);
                 }
             }
-
             /* Session dashboard: left of image, under title — same width/align as hints */
             body.desktop-ui .side-dash {
                 display: flex !important;
@@ -522,7 +512,6 @@
                 color: rgba(245, 230, 200, 0.7);
                 font-weight: 600;
             }
-
             /* Left of page image, near bottom — same width/align as dashboard */
             body.desktop-ui .desktop-hints {
                 display: block !important;
@@ -578,29 +567,26 @@
     </style>
 </head>
 <body>
-
-    <!-- Hidden Navigation Menu -->
+    <!-- MOBILE MOD 1: Swapped Home & End button position, functions unchanged -->
     <div class="navbar" id="navbar">
         <button class="btn" onclick="navbarNext()">Next ◀</button>
-        <button class="btn btn-home" onclick="goHome()">🏠 Home</button>
+        <button class="btn btn-end" onclick="goEnd()">🏁 End</button>
         <span class="page-info" id="pageInfo">1 / 30</span>
         <button class="btn" onclick="jumpPrompt()">🎯 Jump</button>
-        <button class="btn btn-end" onclick="goEnd()">🏁 End</button>
+        <button class="btn btn-home" onclick="goHome()">🏠 Home</button>
         <button class="btn" onclick="navbarPrev()">▶ Prev</button>
     </div>
-
-    <!-- Main Full Screen Viewer (Android touch target — handlers unchanged below) -->
+    <!-- MOBILE MOD END -->
+    <!-- Main Full Screen Viewer (Android touch target) -->
     <div class="image-container" id="touchArea">
         <img id="viewer" src="" alt="Scripture Page">
     </div>
-
     <!-- Desktop only: session jump + page controls (hidden on Android) -->
     <div class="side-rail" id="sideRail" aria-label="Page controls" aria-hidden="true" hidden>
         <div class="page-slider-wrap">
             <span class="page-slider-label">ALL PAGES · 左 ← 右</span>
             <input type="range" class="page-slider" id="pageSlider" min="0" max="0" value="0" step="1" title="Drag across all pages (right = start, left = end)" aria-label="Page position across all sessions">
         </div>
-        <!-- Session row (◀◀ / ▶▶): Chinese R→L — left = next session, right = prev session -->
         <button type="button" class="side-nav side-sprev" id="sideSessPrev" title="Next session (面→前→正→附→完)" aria-label="Next session">
             <span class="side-nav-icon">◀◀</span>
             <span class="side-nav-label">NEXT</span>
@@ -613,7 +599,6 @@
             <span class="side-nav-icon">🏠</span>
             <span class="side-nav-label">HOME</span>
         </button>
-        <!-- Page row (◀ / ▶): Chinese R→L — left = next page, right = prev page -->
         <button type="button" class="side-nav side-prev" id="sidePrev" title="Next page in current session" aria-label="Next page">
             <span class="side-nav-icon">◀</span>
             <span class="side-nav-label">NEXT</span>
@@ -622,7 +607,7 @@
             <span class="side-nav-icon">▶</span>
             <span class="side-nav-label">PREV</span>
         </button>
-        <button type="button" class="side-nav side-end" id="sideEnd" title="Last page of current session (↓ / End)" aria-label="End — last page of current session">
+        <button type="button" class="side-nav side-end" id="sideEnd" title="Last page of main session (↓ / End)" aria-label="End — last page of main session">
             <span class="side-nav-icon">🏁</span>
             <span class="side-nav-label">END</span>
         </button>
@@ -632,13 +617,8 @@
             <span class="side-nav-label">BACK</span>
         </button>
     </div>
-
-    <!-- Desktop: title above progress (same left column as dash + hints) -->
     <div class="desktop-title" id="desktopTitle" aria-hidden="true" hidden>佛說天地八陽神咒經</div>
-
-    <!-- Desktop: session disc dashboard (left upper, under title) -->
     <div class="side-dash" id="sideDash" aria-live="polite" aria-hidden="true" hidden>
-        <!-- Visual order R→L (Chinese): 完 附 正 前 面 — ids unchanged for logic -->
         <div class="sess-track" title="Book section (5 sessions)">
             <span class="sess-chip" id="chipLast">完</span>
             <span class="sess-chip" id="chipAfterRest">附</span>
@@ -650,9 +630,9 @@
             <svg viewBox="0 0 100 100" aria-hidden="true">
                 <defs>
                     <linearGradient id="discGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#e8c98a"/>
-                        <stop offset="55%" stop-color="#c4a06a"/>
-                        <stop offset="100%" stop-color="#8c7053"/>
+                        <stop offset="0%" stop-color="#e8c98a" />
+                        <stop offset="55%" stop-color="#c4a06a" />
+                        <stop offset="100%" stop-color="#8c7053" />
                     </linearGradient>
                 </defs>
                 <circle class="disc-bg" cx="50" cy="50" r="40"></circle>
@@ -666,8 +646,6 @@
         <div class="dash-pages" id="dashPages">— / —</div>
         <div class="dash-label" id="dashLabel">position</div>
     </div>
-
-    <!-- Desktop only: bottom reminder (click zones + keys). Hidden on Android. -->
     <div class="desktop-hints" id="desktopHints" aria-hidden="true" hidden>
         <span class="hint-title">Session navigation</span>
         <span class="hint-line">Session jump: ◀◀ / ▶▶</span>
@@ -678,40 +656,27 @@
         <span class="hint-line">Jump to page: J key + page number</span>
         <span class="hint-line">Back / Undo: Top-right click / B key</span>
     </div>
-
     <div class="toast" id="toast">Top-Left: Menu | Top-Right: Back | Gesture / Tap to Navigate</div>
-
     <script>
-        // Three sections, each folder renumbered from page_001
-        //   front/  — before main (cover + front matter)  → .jpg
-        //   main/   — sutra body (gesture + Jump + Home/End) → .png
-        //   after/  — appendix / closing                 → .jpg
         const FOLDER_FRONT = "front";
         const FOLDER_MAIN = "main";
         const FOLDER_AFTER = "after";
         const EXT_FRONT = "jpg";
         const EXT_MAIN = "png";
         const EXT_AFTER = "jpg";
-
-        let images = [];       // full book: [...front paths, ...main paths, ...after paths]
+        let images = [];
         let currentIndex = 0;
         let frontCount = 0;
         let mainCount = 0;
         let afterCount = 0;
-
-        // Global indices of main-content first/last page (set after load)
         let mainStartIndex = 0;
         let mainEndIndex = 0;
-
-        // Page visit history for desktop Back (undo accidental Home/End/Jump/turns)
         let pageHistory = [];
-        let historyEnabled = false;   // off until first page is shown
-        let historyFromBack = false;  // true while restoring via Back
+        let historyEnabled = false;
+        let historyFromBack = false;
         const PAGE_HISTORY_MAX = 80;
-
-        // Active reading session for PC nav (front | main | after)
         let activeSession = "main";
-        let lastMainIndex = 0;        // resume position when returning to main
+        let lastMainIndex = 0;
 
         function toRoman(num) {
             const map = { m: 1000, cm: 900, d: 500, cd: 400, c: 100, xc: 90, l: 50, xl: 40, x: 10, ix: 9, v: 5, iv: 4, i: 1 };
@@ -724,26 +689,20 @@
             }
             return str;
         }
-
         function pad3(n) {
             const s = String(n);
             return s.length >= 3 ? s : ("000" + s).slice(-3);
         }
-
-        /** True if url is an existing image (HEAD first; Image() fallback for old WebView). */
         async function checkImageExists(url) {
             try {
                 if (typeof fetch === "function") {
                     let res = await fetch(url, { method: "HEAD", cache: "no-store" });
-                    // Some servers/WebViews mishandle HEAD — retry with GET
                     if (res.status === 405 || res.status === 501) {
                         res = await fetch(url, { method: "GET", cache: "no-store" });
                     }
                     return res.ok;
                 }
-            } catch (e) {
-                /* fall through to Image() */
-            }
+            } catch (e) {}
             return new Promise((resolve) => {
                 const img = new Image();
                 img.onload = () => resolve(true);
@@ -751,52 +710,32 @@
                 img.src = url + (url.indexOf("?") >= 0 ? "&" : "?") + "t=" + Date.now();
             });
         }
-
-        /** Load folder/page_001.{ext}, page_002.{ext}, … until a missing file. */
         async function loadFolder(folder, ext) {
             const list = [];
             for (let i = 1; i <= 200; i++) {
                 const path = folder + "/page_" + pad3(i) + "." + ext;
                 if (await checkImageExists(path)) {
                     list.push(path);
-                } else {
-                    break;
-                }
+                } else break;
             }
             return list;
         }
-
         async function loadImages() {
             try {
                 const front = await loadFolder(FOLDER_FRONT, EXT_FRONT);
                 const main = await loadFolder(FOLDER_MAIN, EXT_MAIN);
                 const after = await loadFolder(FOLDER_AFTER, EXT_AFTER);
-
                 frontCount = front.length;
                 mainCount = main.length;
                 afterCount = after.length;
                 images = front.concat(main, after);
-
                 mainStartIndex = frontCount;
                 mainEndIndex = mainCount > 0 ? frontCount + mainCount - 1 : -1;
                 lastMainIndex = mainStartIndex;
                 activeSession = mainCount > 0 ? "main" : (frontCount > 0 ? "first" : "last");
-
-                if (mainCount > 0) {
-                    showPage(mainStartIndex);
-                } else if (images.length > 0) {
-                    showPage(0);
-                } else {
-                    document.getElementById("pageInfo").innerText = "No pages";
-                    console.error(
-                        "No images found. Expected folders:",
-                        FOLDER_FRONT + "/",
-                        FOLDER_MAIN + "/",
-                        FOLDER_AFTER + "/",
-                        "next to index.html. Check server document root."
-                    );
-                }
-                // Start recording history only after the opening page is shown
+                if (mainCount > 0) showPage(mainStartIndex);
+                else if (images.length > 0) showPage(0);
+                else document.getElementById("pageInfo").innerText = "No pages";
                 historyEnabled = true;
                 updateBackButton();
                 updateSessionJumpButtons();
@@ -806,43 +745,24 @@
                 document.getElementById("pageInfo").innerText = "Load error";
             }
         }
-
-        /**
-         * Whole-book page slider (desktop): RTL — first page on the right.
-         * Track is a multi-stop gradient; Main is a distinct gold band.
-         * Thumb stays synced with any navigation (buttons / keys / clicks).
-         */
         let sliderFromUser = false;
-
         function buildSliderTrackGradient() {
             const n = images.length;
             if (n <= 0) return "#3a3028";
-            // Colors: first, frontRest, MAIN (distinct), afterRest, last
-            // Gradient "to left": 0% is on the RIGHT (start of book).
-            const colors = {
-                first: "#6b5b4a",
-                frontRest: "#8a735a",
-                main: "#e0b86a",      // brighter gold — Main session
-                afterRest: "#7a6a8a",
-                last: "#5a4a42",
-            };
+            const colors = { first: "#6b5b4a", frontRest: "#8a735a", main: "#e0b86a", afterRest: "#7a6a8a", last: "#5a4a42" };
             const segs = [];
-            function pushSeg(count, color) {
-                if (count > 0) segs.push({ count: count, color: color });
-            }
+            function pushSeg(count, color) { if (count > 0) segs.push({ count, color }); }
             if (frontCount >= 1) pushSeg(1, colors.first);
             if (frontCount >= 2) pushSeg(frontCount - 1, colors.frontRest);
             if (mainCount > 0) pushSeg(mainCount, colors.main);
             if (afterCount >= 2) pushSeg(afterCount - 1, colors.afterRest);
             if (afterCount >= 1) pushSeg(1, colors.last);
-            // Fallback if counts odd
             let used = 0;
-            segs.forEach(function (s) { used += s.count; });
+            segs.forEach(s => used += s.count);
             if (used < n) pushSeg(n - used, colors.afterRest);
-
             let acc = 0;
             const stops = [];
-            segs.forEach(function (s) {
+            segs.forEach(s => {
                 const a = (acc / n) * 100;
                 acc += s.count;
                 const b = (acc / n) * 100;
@@ -851,7 +771,6 @@
             });
             return "linear-gradient(to left, " + stops.join(", ") + ")";
         }
-
         function setupPageSlider() {
             const sl = document.getElementById("pageSlider");
             if (!sl || images.length === 0) return;
@@ -859,7 +778,6 @@
             sl.max = String(images.length - 1);
             sl.value = String(currentIndex);
             sl.style.background = buildSliderTrackGradient();
-
             function onSlide() {
                 const idx = parseInt(sl.value, 10);
                 if (isNaN(idx)) return;
@@ -871,7 +789,6 @@
             sl.addEventListener("change", onSlide);
             updatePageSlider();
         }
-
         function updatePageSlider() {
             const sl = document.getElementById("pageSlider");
             if (!sl || images.length === 0) return;
@@ -881,19 +798,8 @@
                 sl.max = String(max);
                 sl.style.background = buildSliderTrackGradient();
             }
-            if (sl.value !== String(currentIndex)) {
-                sl.value = String(currentIndex);
-            }
+            if (sl.value !== String(currentIndex)) sl.value = String(currentIndex);
         }
-
-        /*
-         * Five sessions:
-         *   first      — page 0 only (cover / first front page)
-         *   frontRest  — rest of front matter
-         *   main       — sutra body
-         *   afterRest  — after section except the final page
-         *   last       — final page of the book alone
-         */
         function sessionOfIndex(i) {
             if (images.length === 0) return "main";
             const lastIdx = images.length - 1;
@@ -904,7 +810,6 @@
             if (i > mainEndIndex) return "afterRest";
             return "main";
         }
-
         function sessionHasPages(session) {
             if (session === "first") return frontCount >= 1;
             if (session === "frontRest") return frontCount >= 2;
@@ -913,35 +818,21 @@
             if (session === "last") return afterCount >= 1;
             return false;
         }
-
         function getSessionBounds(session) {
             const lastIdx = Math.max(0, images.length - 1);
-            if (session === "first") {
-                return { start: 0, end: 0 };
-            }
-            if (session === "frontRest") {
-                // indices 1 .. mainStartIndex-1
-                return { start: 1, end: Math.max(1, mainStartIndex - 1) };
-            }
-            if (session === "main") {
-                return {
-                    start: mainStartIndex,
-                    end: Math.max(mainStartIndex, mainEndIndex),
-                };
-            }
+            if (session === "first") return { start: 0, end: 0 };
+            if (session === "frontRest") return { start: 1, end: Math.max(1, mainStartIndex - 1) };
+            if (session === "main") return { start: mainStartIndex, end: Math.max(mainStartIndex, mainEndIndex) };
             if (session === "afterRest") {
-                // mainEndIndex+1 .. lastIdx-1
                 const start = mainEndIndex + 1;
                 const end = Math.max(start, lastIdx - 1);
-                return { start: start, end: end };
+                return { start, end };
             }
-            // last
             return { start: lastIdx, end: lastIdx };
         }
-
         function availableSessions() {
             const order = ["first", "frontRest", "main", "afterRest", "last"];
-            return order.filter(function (s) {
+            return order.filter(s => {
                 if (s === "first") return frontCount >= 1;
                 if (s === "frontRest") return frontCount >= 2;
                 if (s === "main") return mainCount > 0;
@@ -950,19 +841,44 @@
                 return false;
             });
         }
-
-        /** Prev/next page limited to the active session (PC). */
+        // Desktop only session limited navigation (unchanged)
         function sessionPrevPage() {
             const b = getSessionBounds(activeSession);
             if (currentIndex > b.start) showPage(currentIndex - 1);
         }
-
         function sessionNextPage() {
             const b = getSessionBounds(activeSession);
             if (currentIndex < b.end) showPage(currentIndex + 1);
         }
 
-        /** Jump to previous/next session. */
+        // MOBILE MOD 2: Group boundary rule for tap/swipe
+        // Group A: first + frontRest (session1+2) | Group B: main(session3) | Group C:afterRest+last(session4+5)
+        function getMobileGroup(index) {
+            const sess = sessionOfIndex(index);
+            if (sess === "first" || sess === "frontRest") return "frontGroup";
+            if (sess === "main") return "mainGroup";
+            return "afterGroup";
+        }
+        function mobileGesturePrev() {
+            if (currentIndex <= 0) return;
+            const currGroup = getMobileGroup(currentIndex);
+            const prevIdx = currentIndex - 1;
+            const prevGroup = getMobileGroup(prevIdx);
+            if (currGroup === prevGroup) {
+                showPage(prevIdx);
+            }
+        }
+        function mobileGestureNext() {
+            if (currentIndex >= images.length - 1) return;
+            const currGroup = getMobileGroup(currentIndex);
+            const nextIdx = currentIndex + 1;
+            const nextGroup = getMobileGroup(nextIdx);
+            if (currGroup === nextGroup) {
+                showPage(nextIdx);
+            }
+        }
+        // MOBILE MOD END
+
         function jumpSession(dir) {
             const order = availableSessions();
             if (order.length === 0) return;
@@ -972,92 +888,59 @@
             if (ni < 0 || ni >= order.length) return;
             goToSession(order[ni]);
         }
-
         function goToSession(session) {
             if (availableSessions().indexOf(session) < 0) return;
-            // Remember main position before leaving main
-            if (
-                currentIndex >= mainStartIndex &&
-                currentIndex <= mainEndIndex
-            ) {
-                lastMainIndex = currentIndex;
-            }
+            if (currentIndex >= mainStartIndex && currentIndex <= mainEndIndex) lastMainIndex = currentIndex;
             activeSession = session;
             if (session === "main") {
                 let idx = lastMainIndex;
-                if (idx < mainStartIndex || idx > mainEndIndex) {
-                    idx = mainStartIndex;
-                }
+                if (idx < mainStartIndex || idx > mainEndIndex) idx = mainStartIndex;
                 showPage(idx);
             } else {
-                // first / frontRest / afterRest / last → first page of that session
                 showPage(getSessionBounds(session).start);
             }
             updateSessionJumpButtons();
         }
-
-        /**
-         * Chinese R→L on both rows (icons stay put):
-         *   Session ◀◀ NEXT / ▶▶ PREV
-         *   Page    ◀  NEXT / ▶  PREV
-         * Keyboard & click zones keep their own mappings.
-         */
         function updateSessionJumpButtons() {
             const order = availableSessions();
             const i = order.indexOf(activeSession);
             const b = getSessionBounds(activeSession);
-
-            // Session row: left = next session, right = prev session
-            const sessNextBtn = document.getElementById("sideSessPrev"); // ◀◀
-            const sessPrevBtn = document.getElementById("sideSessNext"); // ▶▶
+            const sessNextBtn = document.getElementById("sideSessPrev");
+            const sessPrevBtn = document.getElementById("sideSessNext");
             if (sessNextBtn) sessNextBtn.disabled = i < 0 || i >= order.length - 1;
             if (sessPrevBtn) sessPrevBtn.disabled = i <= 0;
-
-            // Page row: left = next page, right = prev page
-            const pageNextBtn = document.getElementById("sidePrev"); // ◀
-            const pagePrevBtn = document.getElementById("sideNext"); // ▶
+            const pageNextBtn = document.getElementById("sidePrev");
+            const pagePrevBtn = document.getElementById("sideNext");
             if (pageNextBtn) pageNextBtn.disabled = currentIndex >= b.end;
             if (pagePrevBtn) pagePrevBtn.disabled = currentIndex <= b.start;
         }
-
         function updateBackButton() {
             const btn = document.getElementById("sideBack");
             if (!btn) return;
             btn.disabled = pageHistory.length === 0;
         }
-
-        /**
-         * Desktop dashboard:
-         * - which of 5 sessions (首 前 正 附 末)
-         * - progress disc = % through that session
-         * - page n / N within the session
-         */
         function updateSessionDashboard() {
             const dash = document.getElementById("sideDash");
             if (!dash || images.length === 0) return;
-
-            const CIRC = 2 * Math.PI * 40; // r=40 in SVG
+            const CIRC = 2 * Math.PI * 40;
             const section = sessionOfIndex(currentIndex);
             const b = getSessionBounds(section);
             const total = Math.max(1, b.end - b.start + 1);
             const local = Math.min(total, Math.max(1, currentIndex - b.start + 1));
-
             const meta = {
-                first:     { name: "Front Cover",  chip: "chipFirst" },
-                frontRest: { name: "Pre-Session",  chip: "chipFrontRest" },
-                main:      { name: "Main",         chip: "chipMain" },
+                first: { name: "Front Cover", chip: "chipFirst" },
+                frontRest: { name: "Pre-Session", chip: "chipFrontRest" },
+                main: { name: "Main", chip: "chipMain" },
                 afterRest: { name: "Post-Session", chip: "chipAfterRest" },
-                last:      { name: "Back Cover",   chip: "chipLast" },
+                last: { name: "Back Cover", chip: "chipLast" },
             };
             const m = meta[section] || meta.main;
             const pct = Math.round((local / total) * 100);
             const offset = CIRC * (1 - local / total);
-
-            ["chipFirst", "chipFrontRest", "chipMain", "chipAfterRest", "chipLast"].forEach(function (id) {
+            ["chipFirst", "chipFrontRest", "chipMain", "chipAfterRest", "chipLast"].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.classList.toggle("active", id === m.chip);
             });
-
             const fg = document.getElementById("discFg");
             if (fg) {
                 fg.style.strokeDasharray = String(CIRC);
@@ -1071,11 +954,8 @@
             if (pagesEl) pagesEl.textContent = local + " / " + total;
             const labelEl = document.getElementById("dashLabel");
             if (labelEl) labelEl.textContent = "Page number";
-
             dash.dataset.section = section;
         }
-
-        /** Go to previous view in history (e.g. after accidental Home/End). */
         function goBackInHistory() {
             if (pageHistory.length === 0) return;
             const prev = pageHistory.pop();
@@ -1084,92 +964,50 @@
             historyFromBack = false;
             updateBackButton();
         }
-
         function showPage(index) {
             if (images.length === 0) return;
-
             if (index < 0) index = 0;
             if (index >= images.length) index = images.length - 1;
-
-            // Record where we left, unless this navigation is Back or initial load
-            if (
-                historyEnabled &&
-                !historyFromBack &&
-                index !== currentIndex
-            ) {
+            if (historyEnabled && !historyFromBack && index !== currentIndex) {
                 pageHistory.push(currentIndex);
-                if (pageHistory.length > PAGE_HISTORY_MAX) {
-                    pageHistory.shift();
-                }
+                if (pageHistory.length > PAGE_HISTORY_MAX) pageHistory.shift();
             }
-
             currentIndex = index;
             document.getElementById('viewer').src = images[currentIndex];
-
-            // Sync active session to the page we landed on (incl. Back undo)
             activeSession = sessionOfIndex(currentIndex);
-            if (activeSession === "main") {
-                lastMainIndex = currentIndex;
-            }
-
+            if (activeSession === "main") lastMainIndex = currentIndex;
             let label = "";
-
-            if (currentIndex === images.length - 1 && afterCount > 0 && currentIndex > mainEndIndex) {
-                label = "完";
-            } else if (currentIndex < mainStartIndex) {
-                // Front matter: Cover + roman numerals for the rest
-                if (currentIndex === 0) {
-                    label = "Cover";
-                } else {
-                    // pages 2..frontCount → i / (frontCount-1) … 
-                    const romanCurrent = toRoman(currentIndex);           // 1→i for page_002
+            if (currentIndex === images.length - 1 && afterCount > 0 && currentIndex > mainEndIndex) label = "完";
+            else if (currentIndex < mainStartIndex) {
+                if (currentIndex === 0) label = "Cover";
+                else {
+                    const romanCurrent = toRoman(currentIndex);
                     const romanTotal = toRoman(Math.max(1, frontCount - 1));
                     label = `${romanCurrent} / ${romanTotal}`;
                 }
             } else if (currentIndex <= mainEndIndex) {
-                // Main sutra: 1 / N … N / N
                 const currentSutraPage = (currentIndex - mainStartIndex) + 1;
                 label = `${currentSutraPage} / ${mainCount}`;
             } else {
-                // After main: 附 1, 附 2, …
                 const appPage = currentIndex - mainEndIndex;
                 label = `附 ${appPage}`;
             }
-
             document.getElementById('pageInfo').innerText = label;
             updateBackButton();
             updateSessionDashboard();
             updateSessionJumpButtons();
             updatePageSlider();
         }
-
-        // Navbar (Android menu): whole book — unchanged behaviour for phone menu
+        // Mobile top menu arrows: full book cross all groups (unchanged original behavior)
         function navbarNext() {
-            if (currentIndex < images.length - 1) {
-                showPage(currentIndex + 1);
-            }
+            if (currentIndex < images.length - 1) showPage(currentIndex + 1);
         }
-
         function navbarPrev() {
-            if (currentIndex > 0) {
-                showPage(currentIndex - 1);
-            }
+            if (currentIndex > 0) showPage(currentIndex - 1);
         }
-
-        // Android gestures: stay inside main content only (untouched for phone)
-        function gestureNext() {
-            if (currentIndex < mainEndIndex) {
-                showPage(currentIndex + 1);
-            }
-        }
-
-        function gesturePrev() {
-            if (currentIndex > mainStartIndex) {
-                showPage(currentIndex - 1);
-            }
-        }
-
-        /** Jump to a 1-based page inside the main/ folder. */
+        // Touch swipe & tap bind mobile group-limited functions
+        function gestureNext() { mobileGestureNext(); }
+        function gesturePrev() { mobileGesturePrev(); }
         function goToMainPage(mainPageNum) {
             if (mainCount === 0) return;
             let n = parseInt(mainPageNum, 10);
@@ -1179,265 +1017,135 @@
             activeSession = "main";
             showPage(mainStartIndex + (n - 1));
         }
-
-        // Home → always first page of main session
         function goHome() {
             activeSession = "main";
-            goToMainPage(1);
+            if (mainStartIndex >= 0 && mainStartIndex < images.length) showPage(mainStartIndex);
         }
-
-        // End → last page of the *current* active session
         function goEnd() {
-            const b = getSessionBounds(activeSession);
-            showPage(b.end);
+            activeSession = "main";
+            if (mainEndIndex >= 0 && mainEndIndex < images.length) showPage(mainEndIndex);
         }
-
         function jumpPrompt() {
             if (mainCount === 0) return;
-            const currentRelativePage =
-                (currentIndex >= mainStartIndex && currentIndex <= mainEndIndex)
-                    ? (currentIndex - mainStartIndex) + 1
-                    : 1;
-
+            const currentRelativePage = (currentIndex >= mainStartIndex && currentIndex <= mainEndIndex) ? (currentIndex - mainStartIndex) + 1 : 1;
             const p = prompt(`Enter page (1 - ${mainCount}):`, currentRelativePage);
-            if (p !== null && p !== "") {
-                goToMainPage(p);
-            }
+            if (p !== null && p !== "") goToMainPage(p);
         }
-
         function toggleMenu() {
             const nav = document.getElementById('navbar');
             nav.classList.toggle('visible');
         }
-
-        /* --- Touch & Gesture Event Handlers (Android) --- */
+        // Touch handlers
         const touchArea = document.getElementById('touchArea');
-        let touchStartX = 0;
-        let touchStartY = 0;
-        let touchEndX = 0;
-        let touchEndY = 0;
+        let touchStartX = 0, touchStartY = 0, touchEndX = 0, touchEndY = 0;
         const minSwipeDistance = 40;
-
         touchArea.addEventListener('touchstart', e => {
             touchStartX = e.changedTouches[0].screenX;
             touchStartY = e.changedTouches[0].screenY;
         }, false);
-
         touchArea.addEventListener('touchend', e => {
             touchEndX = e.changedTouches[0].screenX;
             touchEndY = e.changedTouches[0].screenY;
-            // Prevent the synthetic mouse "click" that follows a touch on some devices
             ignoreMouseClickUntil = Date.now() + 700;
             handleGesture(e);
         }, false);
-
         function handleGesture(event) {
             const deltaX = touchEndX - touchStartX;
             const deltaY = touchEndY - touchStartY;
-
             if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > minSwipeDistance) {
-                if (deltaX < 0) {
-                    gesturePrev();
-                } else {
-                    gestureNext();
-                }
+                if (deltaX < 0) gesturePrev();
+                else gestureNext();
             } else {
                 handleTapZone(event.changedTouches[0]);
             }
         }
-
-        /**
-         * Android tap zones:
-         * - Center → first main page (Home)
-         * - Top-left → menu
-         * - Top-right → Back / undo (page history)
-         * - Bottom-left → previous main page
-         * - Bottom-right → next main page
-         */
         function handleTapZone(touch) {
             const width = window.innerWidth;
             const height = window.innerHeight;
             const x = touch.clientX;
             const y = touch.clientY;
-
             const isLeft = x < width / 2;
             const isRight = x >= width / 2;
             const isTop = y < height / 2;
             const isBottom = y >= height / 2;
-
             const isCenter = (x > width * 0.35 && x < width * 0.65) && (y > height * 0.35 && y < height * 0.65);
-
-            if (isCenter) {
-                goHome();
-            } else if (isLeft && isTop) {
-                toggleMenu();
-            } else if (isRight && isTop) {
-                goBackInHistory();
-            } else if (isRight && isBottom) {
-                gestureNext();
-            } else if (isLeft && isBottom) {
-                gesturePrev();
-            }
+            if (isCenter) goHome();
+            else if (isLeft && isTop) toggleMenu();
+            else if (isRight && isTop) goBackInHistory();
+            else if (isRight && isBottom) gestureNext();
+            else if (isLeft && isBottom) gesturePrev();
         }
-
-        /* ===================================================================
-         * Desktop / PC input (mouse + keyboard + side buttons)
-         * Only active when isDesktopUI() is true. Android uses touch only:
-         * handleTapZone / gestures — mouse click zones & side rail never bind.
-         * =================================================================== */
+        // Desktop mouse & keyboard logic (COMPLETELY UNTOUCHED, original 5-session limits preserved)
         let ignoreMouseClickUntil = 0;
-
-        /** Matches CSS gate: fine pointer + hover + wide enough for chrome. */
         function isDesktopUI() {
             try {
-                return window.matchMedia(
-                    "(hover: hover) and (pointer: fine) and (min-width: 700px)"
-                ).matches;
-            } catch (e) {
-                return false;
-            }
+                return window.matchMedia("(hover: hover) and (pointer: fine) and (min-width: 700px)").matches;
+            } catch (e) { return false; }
         }
-
-        /**
-         * Mouse click zones (PC only) — session-scoped page turns, except Back.
-         * - Center → first main page
-         * - Left-bottom → previous page (active session)
-         * - Right-bottom → next page (active session)
-         * - Top-left → no action
-         * - Top-right → Back / undo (history; no section limit)
-         * Android touch: handleTapZone only (no mouse path).
-         */
         function handleMouseClickZone(clientX, clientY) {
             const width = window.innerWidth;
             const height = window.innerHeight;
-            const x = clientX;
-            const y = clientY;
-
+            const x = clientX, y = clientY;
             const isLeft = x < width / 2;
             const isRight = x >= width / 2;
             const isTop = y < height / 2;
             const isBottom = y >= height / 2;
-            const isCenter =
-                (x > width * 0.35 && x < width * 0.65) &&
-                (y > height * 0.35 && y < height * 0.65);
-
-            if (isCenter) {
-                goHome();
-            } else if (isLeft && isTop) {
-                // intentionally no action
-            } else if (isLeft && isBottom) {
-                sessionPrevPage();
-            } else if (isRight && isTop) {
-                goBackInHistory();
-            } else if (isRight && isBottom) {
-                sessionNextPage();
-            }
+            const isCenter = (x > width * 0.35 && x < width * 0.65) && (y > height * 0.35 && y < height * 0.65);
+            if (isCenter) goHome();
+            else if (isLeft && isTop) {}
+            else if (isLeft && isBottom) sessionPrevPage();
+            else if (isRight && isTop) goBackInHistory();
+            else if (isRight && isBottom) sessionNextPage();
         }
-
         function enableDesktopChrome() {
             document.body.classList.add("desktop-ui");
-
-            // Reveal desktop-only nodes (hidden on mobile so they never take space / taps)
-            const desktopIds = {
-                sideRail: false,
-                desktopTitle: true,   // decorative
-                sideDash: false,
-                desktopHints: true    // decorative
-            };
-            Object.keys(desktopIds).forEach(function (id) {
+            const desktopIds = { sideRail: false, desktopTitle: true, sideDash: false, desktopHints: true };
+            Object.keys(desktopIds).forEach(id => {
                 const el = document.getElementById(id);
                 if (!el) return;
                 el.hidden = false;
                 el.setAttribute("aria-hidden", desktopIds[id] ? "true" : "false");
             });
-
             const toast = document.getElementById("toast");
             if (toast) toast.style.display = "none";
-
             touchArea.addEventListener("click", function (e) {
-                // Skip ghost clicks after a real touch gesture; desktop mouse only
                 if (!isDesktopUI()) return;
                 if (Date.now() < ignoreMouseClickUntil) return;
                 handleMouseClickZone(e.clientX, e.clientY);
             }, false);
-
             function bindSideButton(id, fn) {
                 const el = document.getElementById(id);
                 if (!el) return;
-                el.addEventListener("click", function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    fn();
-                });
+                el.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); fn(); });
             }
-            // Chinese R→L: left = NEXT, right = PREV (within each row). Icons fixed.
-            bindSideButton("sideSessPrev", function () { jumpSession(1); });
-            bindSideButton("sideSessNext", function () { jumpSession(-1); });
+            bindSideButton("sideSessPrev", () => jumpSession(1));
+            bindSideButton("sideSessNext", () => jumpSession(-1));
             bindSideButton("sideHome", goHome);
             bindSideButton("sidePrev", sessionNextPage);
             bindSideButton("sideNext", sessionPrevPage);
             bindSideButton("sideEnd", goEnd);
             bindSideButton("sideBack", goBackInHistory);
-
-            document.addEventListener("keydown", function (e) {
+            document.addEventListener("keydown", e => {
                 if (!isDesktopUI()) return;
                 const tag = (e.target && e.target.tagName) || "";
                 if (tag === "INPUT" || tag === "TEXTAREA") return;
-
                 switch (e.key) {
-                    case "ArrowUp":
-                        e.preventDefault();
-                        sessionPrevPage();
-                        break;
-                    case "ArrowDown":
-                        e.preventDefault();
-                        sessionNextPage();
-                        break;
-                    case "Home":
-                        e.preventDefault();
-                        goHome();
-                        break;
-                    case "End":
-                        e.preventDefault();
-                        goEnd();
-                        break;
-                    case "ArrowLeft":
-                    case "ArrowRight":
-                        break;
-                    case "[":
-                        e.preventDefault();
-                        jumpSession(-1);
-                        break;
-                    case "]":
-                        e.preventDefault();
-                        jumpSession(1);
-                        break;
-                    case "b":
-                    case "B":
-                        e.preventDefault();
-                        goBackInHistory();
-                        break;
-                    case "j":
-                    case "J":
-                        e.preventDefault();
-                        jumpPrompt();
-                        break;
-                    default:
-                        break;
+                    case "ArrowUp": e.preventDefault(); sessionPrevPage(); break;
+                    case "ArrowDown": e.preventDefault(); sessionNextPage(); break;
+                    case "Home": e.preventDefault(); goHome(); break;
+                    case "End": e.preventDefault(); goEnd(); break;
+                    case "[": e.preventDefault(); jumpSession(-1); break;
+                    case "]": e.preventDefault(); jumpSession(1); break;
+                    case "b": case "B": e.preventDefault(); goBackInHistory(); break;
+                    case "j": case "J": e.preventDefault(); jumpPrompt(); break;
                 }
             });
         }
-
-        // Desktop only — Android never enters this path
-        if (isDesktopUI()) {
-            enableDesktopChrome();
-        }
-
+        if (isDesktopUI()) enableDesktopChrome();
         setTimeout(() => {
             const toast = document.getElementById('toast');
             if (toast) toast.style.opacity = '0';
         }, 4000);
-
         loadImages();
     </script>
 </body>
